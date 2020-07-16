@@ -1,6 +1,6 @@
 package top.ntutn
 
 fun main() {
-    println("Hello World!")
-    ConfigUtils.readValue("","")
+    println("kmdblog已经启动！")
+    ConfigUtils.checkInit()
 }
