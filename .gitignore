@@ -6,3 +6,7 @@
 /build
 /captures
 /config.xml
+/static
+/templates
+/input
+/output
