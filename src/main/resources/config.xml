@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
 <root>
-    Sample Config
+    <!--系统重要路径信息-->
+    <path input="./input" output="./output" static="./static" templates="./templates" />
+
 </root>
