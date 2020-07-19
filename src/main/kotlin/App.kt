@@ -14,6 +14,8 @@ import java.util.*
 fun main() {
     println("kmdblog已经启动！")
 
+    HTMLTemplateUtil.initEngine(ConfigUtil.templatePath)
+
     val dependencyList = LinkedList<MakeDependency>()
 
     //遍历静态文件夹，添加依赖
@@ -29,9 +31,6 @@ fun main() {
 
     TODO markdown渲染
     需要一个java/kotlin实现的markdown渲染引擎。
-
-    TODO 模板渲染
-    采用thymeleaf作为模板引擎，传入的变量包括站点范围的变量、markdown引擎输出的KV对、文章信息。
 
     TODO 生成首页
      */
@@ -70,9 +69,10 @@ fun scanMdFolder(root: File, arrayDependency: LinkedList<MakeDependency>) {
             return
         }
         val mdXml = File(it.parent, it.name + ".xml")
-        //TODO 修改mdXml的日期
         if(it.name.endsWith(".md")){
             updateMdXml(it, mdXml)
+            println(HTMLTemplateUtil.render("article", hashMapOf("file" to mdXml)))
+            //TODO md渲染，添加依赖
         }
     }
 }
