@@ -40,6 +40,8 @@ class ConfigUtil {
             private set
         var templatePath: String
             private set
+        var siteAttributes:HashMap<String,String>
+            private set
 
         /**
          * 将资源文件复制到指定位置
@@ -75,6 +77,13 @@ class ConfigUtil {
                 println("XML读取失败。")
                 exitProcess(1)
             }
+
+            //读取所有的站点配置
+            siteAttributes= HashMap<String,String>()
+            document.rootElement.element("attributes").elements().forEach{
+                siteAttributes[it.attributeValue("ID")] = it.textTrim
+            }
+
             with(document.rootElement.element("path")) {
                 inputPath = getAbsolutePath(getCurrentPath(), attributeValue("input"))
                 outputPath = getAbsolutePath(getCurrentPath(), attributeValue("output"))
@@ -86,6 +95,7 @@ class ConfigUtil {
             val inputDir = File(inputPath)
             val outputDir = File(outputPath)
             val staticDir = File(staticPath)
+            val staticResDir=File(staticPath,"./res")
             val templateDir = File(templatePath)
 
             if (!inputDir.exists()) {
@@ -103,6 +113,10 @@ class ConfigUtil {
             if (!staticDir.exists()) {
                 println("静态资源文件夹不存在，正在创建。")
                 staticDir.mkdirs()
+            }
+            if (!staticResDir.exists()) {
+                println("静态设计资源文件夹不存在，正在创建。")
+                staticResDir.mkdirs()
             }
 
             val indexHtmlPath = getAbsolutePath(templatePath, "./index.html")
@@ -125,8 +139,14 @@ class ConfigUtil {
 
             val aboutMdPath = getAbsolutePath(inputPath, "./about.md")
             if (!File(aboutMdPath).exists()) {
-                println("网站图标不存在！")
+                println("网站关于模板不存在！")
                 copyResourceTo("/input/about.md", aboutMdPath)
+            }
+
+            val logoPath = getAbsolutePath(staticPath, "./res/logo.png")
+            if (!File(logoPath).exists()) {
+                println("网站logo模板不存在！")
+                copyResourceTo("/static/res/logo.png", logoPath)
             }
         }
     }

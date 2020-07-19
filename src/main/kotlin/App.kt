@@ -1,8 +1,14 @@
 package top.ntutn
 
+import org.dom4j.Document
+import org.dom4j.DocumentFactory
+import org.dom4j.Element
+import org.dom4j.io.XMLWriter
 import java.io.File
+import java.io.FileWriter
 import java.nio.file.Files
 import java.nio.file.Paths
+import java.text.SimpleDateFormat
 import java.util.*
 
 fun main() {
@@ -11,18 +17,23 @@ fun main() {
     val dependencyList = LinkedList<MakeDependency>()
 
     //遍历静态文件夹，添加依赖
-    scanStaticFolder(File(ConfigUtil.staticPath), dependencyList)
+    scanStaticFolder(File(ConfigUtil.staticPath), dependencyList, ConfigUtil.outputPath)
+    //res还需要复制到其他文件夹
+    scanStaticFolder(File(ConfigUtil.staticPath + "/res"), dependencyList, ConfigUtil.inputPath)
+    scanStaticFolder(File(ConfigUtil.staticPath + "/res"), dependencyList, ConfigUtil.templatePath)
 
-    //TODO 遍历md文件，生成xml文件
-    //也许生成xml任务添加后应该执行一次构建再分析后面的
+    scanMdFolder(File(ConfigUtil.inputPath), dependencyList)
 
     /*
+    TODO 生成内容页
+
     TODO markdown渲染
     需要一个java/kotlin实现的markdown渲染引擎。
 
     TODO 模板渲染
     采用thymeleaf作为模板引擎，传入的变量包括站点范围的变量、markdown引擎输出的KV对、文章信息。
 
+    TODO 生成首页
      */
 
     dependencyList.forEach {
@@ -33,25 +44,76 @@ fun main() {
 
     // 删除多余文件和空文件夹
     removeUnusedFiles(File(ConfigUtil.outputPath), dependencyList)
+    removeUnusedFiles(File(ConfigUtil.inputPath, "./res"), dependencyList)
+    removeUnusedFiles(File(ConfigUtil.templatePath, "./res"), dependencyList)
     removeEmptyFolders(File(ConfigUtil.outputPath))
+    removeEmptyFolders(File(ConfigUtil.inputPath, "./res"))
+    removeEmptyFolders(File(ConfigUtil.outputPath, "./res"))
 }
 
-fun scanStaticFolder(root: File, arrayDependency: LinkedList<MakeDependency>) {
+/**
+ * 扫描输入文件夹，同步XML数据并开始渲染
+ * @param root 起始位置
+ * @param arrayDependency 已有依赖列表
+ */
+fun scanMdFolder(root: File, arrayDependency: LinkedList<MakeDependency>) {
+    if (!root.exists() || !root.isDirectory || !root.canRead()) {
+        return
+    }
+    //跳过res文件夹
+    if (File(ConfigUtil.inputPath + "/res").exists()&&Files.isSameFile(Paths.get(ConfigUtil.inputPath + "/res"), Paths.get(root.toURI()))) {
+        return
+    }
+    root.listFiles()?.forEach {
+        if (it.isDirectory) {
+            scanMdFolder(it, arrayDependency)
+            return
+        }
+        val mdXml = File(it.parent, it.name + ".xml")
+        //TODO 修改mdXml的日期
+        if(it.name.endsWith(".md")){
+            updateMdXml(it, mdXml)
+        }
+    }
+}
+
+fun updateMdXml(md: File, mdXml: File) {
+    var mdXmlDocument: Document? = XMLUtil.readXMLDocument(mdXml.toString())
+    val simpleDateFormat=SimpleDateFormat("yyyy-MM-dd")
+    if (mdXmlDocument == null) {
+        println("未找到${md}的配置文件")
+        mdXmlDocument = DocumentFactory.getInstance().createDocument()
+        val attrElement = mdXmlDocument.addElement("article").addElement("attributes")
+        XMLUtil.createElement(attrElement, "attr", hashMapOf("ID" to "title"), md.name.replace(".md",""))
+        XMLUtil.createElement(attrElement, "attr", hashMapOf("ID" to "keywords"), "文章|关键词")
+        XMLUtil.createElement(attrElement, "attr", hashMapOf("ID" to "abs"), "文章的简介")
+        XMLUtil.createElement(attrElement, "attr", hashMapOf("ID" to "publishTime"), simpleDateFormat.format(Date()))
+        XMLUtil.createElement(attrElement, "attr", hashMapOf("ID" to "editTime"), simpleDateFormat.format(Date()))
+        XMLUtil.createElement(attrElement, "attr", hashMapOf("ID" to "author"), ConfigUtil.siteAttributes["defaultAuthor"]?:"NO NAME")
+    }
+    mdXmlDocument!!
+    //更新修改日期
+    mdXmlDocument.elementByID("editTime").text=simpleDateFormat.format(md.lastModified())
+    XMLUtil.writeXMLDocument(mdXmlDocument, mdXml)
+}
+
+fun scanStaticFolder(root: File, arrayDependency: LinkedList<MakeDependency>, targetPath: String) {
     if (!root.exists() || !root.isDirectory || !root.canRead()) {
         return
     }
     root.listFiles()?.forEach {
         if (it.isDirectory) {
-            scanStaticFolder(it, arrayDependency)
-        } else if (it.isFile) {
-            arrayDependency.add(
-                MakeDependency(
-                    listOf(it),
-                    File(ConfigUtil.outputPath, it.relativeToOrSelf(File(ConfigUtil.staticPath)).toString()),
-                    MakeTasks.copyTask
-                )
-            )
+            scanStaticFolder(it, arrayDependency, targetPath)
+            return
         }
+        arrayDependency.add(
+            MakeDependency(
+                listOf(it),
+                File(targetPath, it.relativeToOrSelf(File(ConfigUtil.staticPath)).toString()),
+                MakeTasks.copyTask
+            )
+        )
+
     }
 }
 
