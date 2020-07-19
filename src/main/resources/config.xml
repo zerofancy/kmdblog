@@ -4,4 +4,8 @@
     <!--系统重要路径信息-->
     <path input="./input" output="./output" static="./static" templates="./templates" />
 
+    <!--这里的变量将传递给thymeleaf-->
+    <varibles>
+        <varible name="sitename">归零幻想的博客</varible>
+    </varibles>
 </root>

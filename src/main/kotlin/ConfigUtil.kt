@@ -1,11 +1,13 @@
 package top.ntutn
 
-import org.dom4j.Document
 import java.io.File
-import java.lang.Exception
 import java.nio.file.Files
 import java.nio.file.Paths
+import kotlin.system.exitProcess
 
+/**
+ * 与系统的通用配置项有关的类。由于配置项是在启动时初始化，目前checkInit()也被放到了这里。
+ */
 class ConfigUtil {
     companion object {
         /**
@@ -30,10 +32,14 @@ class ConfigUtil {
          */
         fun getResourcePath() = ConfigUtil::class.java.classLoader.getResource("")
 
-        private lateinit var inputPath: String
-        private lateinit var outputPath: String
-        private lateinit var staticPath: String
-        private lateinit var templatePath: String
+        var inputPath: String
+            private set
+        var outputPath: String
+            private set
+        var staticPath: String
+            private set
+        var templatePath: String
+            private set
 
         /**
          * 将资源文件复制到指定位置
@@ -53,7 +59,7 @@ class ConfigUtil {
         /**
          * 检查配置文件和主要文件夹是否存在，不存在则创建
          */
-        fun checkInit(): Boolean {
+        init {
             if (!File(getConfigPathAndFilename()).exists()) {
                 println("主配置文件不存在！")
                 println(getCurrentPath())
@@ -61,13 +67,13 @@ class ConfigUtil {
                     copyResourceTo("/config.xml", getConfigPathAndFilename())
                 } catch (e: Exception) {
                     println("复制文件出错。")
-                    return false
+                    exitProcess(1)
                 }
             }
             val document = XMLUtil.readXMLDocument(getConfigPathAndFilename())
             if (document == null) {
                 println("XML读取失败。")
-                return false
+                exitProcess(1)
             }
             with(document.rootElement.element("path")) {
                 inputPath = getAbsolutePath(getCurrentPath(), attributeValue("input"))
@@ -117,7 +123,11 @@ class ConfigUtil {
                 copyResourceTo("/static/favicon.ico", faviconPath)
             }
 
-            return true
+            val aboutMdPath = getAbsolutePath(inputPath, "./about.md")
+            if (!File(aboutMdPath).exists()) {
+                println("网站图标不存在！")
+                copyResourceTo("/input/about.md", aboutMdPath)
+            }
         }
     }
 }

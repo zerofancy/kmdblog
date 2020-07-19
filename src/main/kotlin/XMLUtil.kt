@@ -6,6 +6,9 @@ import java.io.File
 import java.io.FileInputStream
 import java.lang.Exception
 
+/**
+ * XML工具类
+ */
 class XMLUtil {
     companion object {
         fun readXMLDocument(filePath: String): Document? {

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<article>
+    <attributes>
+        <attr name="title">文章的标题</attr>
+        <attr name="keywords">文章|关键词</attr>
+        <attr name="abs">文章的简介</attr>
+        <attr name="publishTime">星期五, 2020年7月17日</attr>
+        <attr name="editTime">星期五, 2020年7月17日</attr>
+        <attr name="author">归零幻想</attr>
+    </attributes>
+</article>
