@@ -4,11 +4,11 @@
 
 ### kmdblog是什么
 
-本项目是一个自用的kotlin练手项目，期望能根据markdown源文件自动生成一个可以直接部署的静态网站。
+本项目是一个自用的`Kotlin`练手项目，期望能根据`markdown`源文件自动生成一个可以直接部署的静态网站。
 
 ### kmdblog名字的含义
 
-k指项目用kotlin开发，md指通过markdown文件生成文章。
+`k`指项目用`Kotlin`开发，`md`指通过`markdown`文件生成文章。
 
 ### 问题和求助
 
@@ -19,3 +19,4 @@ k指项目用kotlin开发，md指通过markdown文件生成文章。
 本软件的诞生离不开以下开源项目的支持。
 
 - [dom4j](https://dom4j.github.io/)
+- [commons-io](https://commons.apache.org/proper/commons-io/)
