@@ -13,7 +13,8 @@ fun main() {
     //遍历静态文件夹，添加依赖
     scanStaticFolder(File(ConfigUtil.staticPath), dependencyList)
 
-    //遍历md文件，生成xml文件
+    //TODO 遍历md文件，生成xml文件
+    //也许生成xml任务添加后应该执行一次构建再分析后面的
 
     /*
     TODO markdown渲染
