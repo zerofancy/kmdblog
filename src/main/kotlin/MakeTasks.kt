@@ -39,6 +39,10 @@ class CopyTask : MakeTask {
  */
 class HtmlTask:MakeTask{
     override fun invoke(source: List<File>, target: File) {
+        if(source.size<2||!source[0].isFile||!source[0].canRead()||!source[1].isFile||!source[1].canRead()){
+            return
+        }
+
         TODO("Not yet implemented")
     }
 
