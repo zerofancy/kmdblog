@@ -14,6 +14,7 @@ dependencies {
     implementation("org.dom4j:dom4j:2.1.3")
     implementation("commons-io:commons-io:20030203.000550")
     implementation("org.thymeleaf:thymeleaf:3.0.11.RELEASE")
+    implementation("org.slf4j:slf4j-simple:1.7.30")
 }
 // https://stackoverflow.com/questions/48553029/how-do-i-overwrite-a-task-in-gradle-kotlin-dsl
 // https://github.com/gradle/kotlin-dsl/issues/705

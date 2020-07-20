@@ -17,7 +17,7 @@ class HTMLTemplateUtil {
             val resolver = FileTemplateResolver()
             resolver.prefix = "$templatePath/"
             resolver.suffix = ".html";
-            resolver.setTemplateMode("HTML5")
+            resolver.setTemplateMode("HTML")
             resolver.order = templateEngine.templateResolvers.size
             resolver.isCacheable = false
             templateEngine.addTemplateResolver(resolver)

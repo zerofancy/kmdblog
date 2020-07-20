@@ -20,4 +20,5 @@
 
 - [commons-io](https://commons.apache.org/proper/commons-io/)
 - [dom4j](https://dom4j.github.io/)
+- [Slf4j](http://www.slf4j.org/)
 - [Thymeleaf](https://www.thymeleaf.org/)
