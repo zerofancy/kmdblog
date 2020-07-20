@@ -1,5 +1,7 @@
 # 关于
 
+[TOC]
+
 ## 关于kmdblog
 
 ### kmdblog是什么

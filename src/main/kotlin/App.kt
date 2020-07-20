@@ -1,5 +1,6 @@
 package top.ntutn
 
+import org.apache.commons.io.FileUtils
 import org.dom4j.Document
 import org.dom4j.DocumentFactory
 import java.io.File
@@ -57,40 +58,58 @@ fun scanMdFolder(root: File, arrayDependency: LinkedList<MakeDependency>) {
         return
     }
     //跳过res文件夹
-    if (File(ConfigUtil.inputPath + "/res").exists()&&Files.isSameFile(Paths.get(ConfigUtil.inputPath + "/res"), Paths.get(root.toURI()))) {
+    if (File(ConfigUtil.inputPath + "/res").exists() && Files.isSameFile(
+            Paths.get(ConfigUtil.inputPath + "/res"),
+            Paths.get(root.toURI())
+        )
+    ) {
         return
     }
     root.listFiles()?.forEach {
         if (it.isDirectory) {
             scanMdFolder(it, arrayDependency)
-            return
+            return@forEach
         }
-        val mdXml = File(it.parent, it.name + ".xml")
-        if(it.name.endsWith(".md")){
+        if (it.name.endsWith(".md")) {
+            val mdXml = File(it.parent, it.name + ".xml")
             updateMdXml(it, mdXml)
             println(HTMLTemplateUtil.render("article", hashMapOf("file" to mdXml)))
             //TODO md渲染，添加依赖
+            println()
+            println()
+            println("Markdown渲染结果：")
+            println()
+            println(
+                MdToHTMLUtil.render(
+                    FileUtils.fileRead(it.absolutePath)
+                )
+            )
         }
     }
 }
 
 fun updateMdXml(md: File, mdXml: File) {
     var mdXmlDocument: Document? = XMLUtil.readXMLDocument(mdXml.toString())
-    val simpleDateFormat=SimpleDateFormat("yyyy-MM-dd")
+    val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd")
     if (mdXmlDocument == null) {
         println("未找到${md}的配置文件")
         mdXmlDocument = DocumentFactory.getInstance().createDocument()
         val attrElement = mdXmlDocument.addElement("article").addElement("attributes")
-        XMLUtil.createElement(attrElement, "attr", hashMapOf("ID" to "title"), md.name.replace(".md",""))
+        XMLUtil.createElement(attrElement, "attr", hashMapOf("ID" to "title"), md.name.replace(".md", ""))
         XMLUtil.createElement(attrElement, "attr", hashMapOf("ID" to "keywords"), "文章|关键词")
         XMLUtil.createElement(attrElement, "attr", hashMapOf("ID" to "abs"), "文章的简介")
         XMLUtil.createElement(attrElement, "attr", hashMapOf("ID" to "publishTime"), simpleDateFormat.format(Date()))
         XMLUtil.createElement(attrElement, "attr", hashMapOf("ID" to "editTime"), simpleDateFormat.format(Date()))
-        XMLUtil.createElement(attrElement, "attr", hashMapOf("ID" to "author"), ConfigUtil.siteAttributes["defaultAuthor"]?:"NO NAME")
+        XMLUtil.createElement(
+            attrElement,
+            "attr",
+            hashMapOf("ID" to "author"),
+            ConfigUtil.siteAttributes["defaultAuthor"] ?: "NO NAME"
+        )
     }
     mdXmlDocument!!
     //更新修改日期
-    mdXmlDocument.elementByID("editTime").text=simpleDateFormat.format(md.lastModified())
+    mdXmlDocument.elementByID("editTime").text = simpleDateFormat.format(md.lastModified())
     XMLUtil.writeXMLDocument(mdXmlDocument, mdXml)
 }
 
@@ -101,7 +120,7 @@ fun scanStaticFolder(root: File, arrayDependency: LinkedList<MakeDependency>, ta
     root.listFiles()?.forEach {
         if (it.isDirectory) {
             scanStaticFolder(it, arrayDependency, targetPath)
-            return
+            return@forEach
         }
         arrayDependency.add(
             MakeDependency(

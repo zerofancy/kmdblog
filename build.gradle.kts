@@ -15,7 +15,12 @@ dependencies {
     implementation("commons-io:commons-io:20030203.000550")
     implementation("org.thymeleaf:thymeleaf:3.0.11.RELEASE")
     implementation("org.slf4j:slf4j-simple:1.7.30")
+    implementation ("com.vladsch.flexmark:flexmark:0.62.2")
+    implementation ("com.vladsch.flexmark:flexmark-util:0.62.2")
+    implementation ("com.vladsch.flexmark:flexmark-ext-tables:0.62.2")
+    implementation ("com.vladsch.flexmark:flexmark-ext-toc:0.62.2")
 }
+
 // https://stackoverflow.com/questions/48553029/how-do-i-overwrite-a-task-in-gradle-kotlin-dsl
 // https://github.com/gradle/kotlin-dsl/issues/705
 // https://github.com/gradle/kotlin-dsl/issues/716
@@ -25,7 +30,7 @@ val fatJar = task("fatJar", type = org.gradle.jvm.tasks.Jar::class) {
         attributes["Main-Class"] = "top.ntutn.AppKt"
     }
     from(configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) })
-    with(tasks["jar"] as CopySpec)
+    with(tasks["jar"] as CopySpec).exclude("META-INF/LICENSE.txt").exclude("META-INF/NOTICE.txt")
 }
 
 tasks {
