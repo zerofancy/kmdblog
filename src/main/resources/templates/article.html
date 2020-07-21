@@ -1,9 +1,12 @@
 <!DOCTYPE HTML>
-<html xmlns:th="http://www.w3.org/1999/xhtml">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>标题</title>
+    <meta charset="UTF-8">
 </head>
 <body>
-    <h1 th:text="${file}">123</h1>
+<!--/*@thymesVar id="html" type="java.lang.String"*/-->
+    <div th:utext="${html}">Here is content.</div>
 </body>
 </html>

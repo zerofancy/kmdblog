@@ -20,6 +20,7 @@ class MdToHTMLUtil {
             .set(SimTocExtension.LEVELS, 255)
             .set(TocExtension.TITLE, "Table of Contents")
             .set(TocExtension.DIV_CLASS, "toc")
+            .set(TocExtension.TITLE_LEVEL,2)
         private val parser = Parser.builder(options).build()
         private val renderer = HtmlRenderer.builder(options).build()
 

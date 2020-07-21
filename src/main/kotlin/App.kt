@@ -72,18 +72,10 @@ fun scanMdFolder(root: File, arrayDependency: LinkedList<MakeDependency>) {
         }
         if (it.name.endsWith(".md")) {
             val mdXml = File(it.parent, it.name + ".xml")
+            val model = File(ConfigUtil.templatePath, "article.html")
+            val target = File(ConfigUtil.outputPath, it.nameWithoutExtension + ".html")
             updateMdXml(it, mdXml)
-            println(HTMLTemplateUtil.render("article", hashMapOf("file" to mdXml)))
-            //TODO md渲染，添加依赖
-            println()
-            println()
-            println("Markdown渲染结果：")
-            println()
-            println(
-                MdToHTMLUtil.render(
-                    FileUtils.fileRead(it.absolutePath)
-                )
-            )
+            arrayDependency.add(MakeDependency(listOf(it, mdXml, model), target, MakeTasks.htmlTask))
         }
     }
 }
