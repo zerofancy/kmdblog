@@ -2,11 +2,19 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>标题</title>
+    <!--/*@thymesVar id="title" type="java.lang.String"*/-->
+    <!--/*@thymesVar id="sitename" type="java.lang.String"*/-->
+    <title th:text="${title+'--'+sitename}">标题</title>
     <meta charset="UTF-8">
 </head>
 <body>
-<!--/*@thymesVar id="html" type="java.lang.String"*/-->
+    <!--/*@thymesVar id="author" type="java.lang.String"*/-->
+    <div th:text="${author}">作者</div>
+    <!--/*@thymesVar id="html" type="java.lang.String"*/-->
     <div th:utext="${html}">Here is content.</div>
+    <!--/*@thymesVar id="md" type="java.lang.String"*/-->
+    <label>
+        <textarea th:text="${md}">md内容</textarea>
+    </label>
 </body>
 </html>

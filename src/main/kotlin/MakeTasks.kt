@@ -62,7 +62,17 @@ class HtmlTask : MakeTask {
         val md = FileUtils.fileRead(mdFile.canonicalPath)
         val mdHtml = MdToHTMLUtil.render(md)
 
-        val outputHtml = HTMLTemplateUtil.render(modelName, hashMapOf("md" to md, "html" to mdHtml))
+        val attributes= hashMapOf<String,Any>()
+
+        val document=XMLUtil.readXMLDocument(xmlFile.canonicalPath)
+        document?.rootElement?.element("attributes")?.elements()?.forEach {
+            attributes+=it.attribute("ID").stringValue to it.textTrim
+        }
+        attributes+="md" to md
+        attributes+="html" to mdHtml
+        attributes+=ConfigUtil.siteAttributes
+
+        val outputHtml = HTMLTemplateUtil.render(modelName, attributes)
         println("渲染$mdFile->$target")
         FileUtils.fileWrite(target.canonicalPath, outputHtml)
     }
