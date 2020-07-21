@@ -6,8 +6,17 @@
     <!--/*@thymesVar id="sitename" type="java.lang.String"*/-->
     <title th:text="${title+'--'+sitename}">标题</title>
     <meta charset="UTF-8">
+    <script>
+        //移除markdown原来渲染结果中的h1标题，因为要在标题和正文之间放上修改时间等信息
+        window.onload=function(){
+            document.querySelectorAll("h1:not(.realtitle)").forEach(function(value,key,parent){
+                value.remove()
+            })
+        }
+    </script>
 </head>
 <body>
+    <h1 th:text="${title}" class="realtitle">标题</h1>
     <!--/*@thymesVar id="author" type="java.lang.String"*/-->
     <div th:text="${author}">作者</div>
     <!--/*@thymesVar id="html" type="java.lang.String"*/-->
