@@ -77,3 +77,21 @@ class HtmlTask : MakeTask {
         FileUtils.fileWrite(target.canonicalPath, outputHtml)
     }
 }
+
+/**
+ * 用所给输入文章内容页构建一个主页
+ * TODO 决定到底是用md文件输入还是用html文件输入。
+ * 或许无输入更好（只有模板输入），始终构建，主动扫描
+ */
+class MainPageTask:MakeTask{
+    override fun invoke(source: List<File>, target: File) {
+        /**
+         * 扫描所有mdxml文件，得到站点结构和所有文章的属性{数据结构？}
+         * 按照修改时间对输出文件排序
+         * 附加站点属性，模板渲染
+         *
+         * 那么传递给模板的数据有站点属性String to String，文章属性String to HashMap
+         */
+    }
+
+}
