@@ -22,16 +22,13 @@ fun main() {
     scanStaticFolder(File(ConfigUtil.staticPath + "/res"), dependencyList, ConfigUtil.inputPath)
     scanStaticFolder(File(ConfigUtil.staticPath + "/res"), dependencyList, ConfigUtil.templatePath)
 
+    //生成文章内容页
     scanMdFolder(File(ConfigUtil.inputPath), dependencyList)
 
-    /*
-    TODO 生成内容页
-
-    TODO markdown渲染
-    需要一个java/kotlin实现的markdown渲染引擎。
-
-    TODO 生成首页
-     */
+    //生成首页
+    var mdXmls = scanMdXmls(File(ConfigUtil.inputPath), emptyArray())
+    mdXmls+=File(ConfigUtil.templatePath,"index.html")
+    dependencyList.add(MakeDependency(mdXmls.toList(), File(ConfigUtil.outputPath, "index.html"), MakeTasks.mainPageTask))
 
     dependencyList.forEach {
         if (it.shouldMakeAgain()) {
@@ -46,6 +43,34 @@ fun main() {
     removeEmptyFolders(File(ConfigUtil.outputPath))
     removeEmptyFolders(File(ConfigUtil.inputPath, "./res"))
     removeEmptyFolders(File(ConfigUtil.outputPath, "./res"))
+}
+
+/**
+ * 扫描输入文件夹，返回所有mdXml文件，以便生成主页
+ */
+fun scanMdXmls(root: File, array: Array<File>): Array<File> {
+    var res = array
+    if (!root.exists() || !root.isDirectory || !root.canRead()) {
+        return res
+    }
+    //跳过res文件夹
+    if (File(ConfigUtil.inputPath + "/res").exists() && Files.isSameFile(
+            Paths.get(ConfigUtil.inputPath + "/res"),
+            Paths.get(root.toURI())
+        )
+    ) {
+        return res
+    }
+    root.listFiles()?.forEach {
+        if (it.isDirectory) {
+            scanMdXmls(it, array)
+            return@forEach
+        }
+        if (it.name.endsWith(".md.xml")) {
+            res += it
+        }
+    }
+    return res
 }
 
 /**
