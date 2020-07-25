@@ -7,7 +7,8 @@ class MakeTasks {
     companion object {
         val copyTask = CopyTask()
         val htmlTask = HtmlTask()
-        val mainPageTask=MainPageTask()
+        val mainPageTask = MainPageTask()
+        val noOperationTask = NoOperationTask()
     }
 }
 
@@ -26,6 +27,13 @@ private fun checkReadable(file: File): Boolean {
         return true
     }
     return true
+}
+
+/**
+ * 不做任何事情
+ */
+class NoOperationTask : MakeTask {
+    override fun invoke(source: List<File>, target: File) = Unit
 }
 
 /**
@@ -104,12 +112,12 @@ class MainPageTask : MakeTask {
             it["editTime"]
         }
 
-        val attributes= hashMapOf<String,Any>()
+        val attributes = hashMapOf<String, Any>()
 
-        attributes+="htmls" to htmls
-        attributes+=ConfigUtil.siteAttributes
+        attributes += "htmls" to htmls
+        attributes += ConfigUtil.siteAttributes
 
-        val outputHtml=HTMLTemplateUtil.render(modelFile.nameWithoutExtension, attributes)
+        val outputHtml = HTMLTemplateUtil.render(modelFile.nameWithoutExtension, attributes)
         println("渲染主页$target")
         FileUtils.fileWrite(target.canonicalPath, outputHtml)
     }

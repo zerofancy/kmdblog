@@ -16,6 +16,9 @@ fun main() {
 
     val dependencyList = LinkedList<MakeDependency>()
 
+    //保证嵌套时源文件不被删除
+
+
     //遍历静态文件夹，添加依赖
     scanStaticFolder(File(ConfigUtil.staticPath), dependencyList, ConfigUtil.outputPath)
     //res还需要复制到其他文件夹
@@ -27,8 +30,14 @@ fun main() {
 
     //生成首页
     var mdXmls = scanMdXmls(File(ConfigUtil.inputPath), emptyArray())
-    mdXmls+=File(ConfigUtil.templatePath,"index.html")
-    dependencyList.add(MakeDependency(mdXmls.toList(), File(ConfigUtil.outputPath, "index.html"), MakeTasks.mainPageTask))
+    mdXmls += File(ConfigUtil.templatePath, "index.html")
+    dependencyList.add(
+        MakeDependency(
+            mdXmls.toList(),
+            File(ConfigUtil.outputPath, "index.html"),
+            MakeTasks.mainPageTask
+        )
+    )
 
     dependencyList.forEach {
         if (it.shouldMakeAgain()) {
@@ -44,6 +53,7 @@ fun main() {
     removeEmptyFolders(File(ConfigUtil.inputPath, "./res"))
     removeEmptyFolders(File(ConfigUtil.outputPath, "./res"))
 }
+
 
 /**
  * 扫描输入文件夹，返回所有mdXml文件，以便生成主页
@@ -108,7 +118,9 @@ fun scanMdFolder(root: File, arrayDependency: LinkedList<MakeDependency>) {
 fun updateMdXml(md: File, mdXml: File) {
     var mdXmlDocument: Document? = XMLUtil.readXMLDocument(mdXml.toString())
     val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd")
+    var edited=false
     if (mdXmlDocument == null) {
+        edited=true
         println("未找到${md}的配置文件")
         mdXmlDocument = DocumentFactory.getInstance().createDocument()
         val attrElement = mdXmlDocument.addElement("article").addElement("attributes")
@@ -126,8 +138,13 @@ fun updateMdXml(md: File, mdXml: File) {
     }
     mdXmlDocument!!
     //更新修改日期
-    mdXmlDocument.elementByID("editTime").text = simpleDateFormat.format(md.lastModified())
-    XMLUtil.writeXMLDocument(mdXmlDocument, mdXml)
+    if(md.lastModified()>mdXml.lastModified()){
+        edited=true
+        mdXmlDocument.elementByID("editTime").text = simpleDateFormat.format(md.lastModified())
+    }
+    if (edited){
+        XMLUtil.writeXMLDocument(mdXmlDocument, mdXml)
+    }
 }
 
 fun scanStaticFolder(root: File, arrayDependency: LinkedList<MakeDependency>, targetPath: String) {
@@ -157,7 +174,13 @@ fun scanStaticFolder(root: File, arrayDependency: LinkedList<MakeDependency>, ta
  */
 fun removeUnusedFiles(root: File, outputArray: List<MakeDependency>) {
     if (root.isDirectory) {
-        root.listFiles()?.forEach { reality ->
+        root.listFiles()?.forEach delnouse@{ reality ->
+            ConfigUtil.noCleanFiles.forEach {
+                if (it.exists() && Files.isSameFile(Paths.get(reality.toURI()), Paths.get(it.toURI()))) {
+                    return@delnouse
+                }
+            }
+
             removeUnusedFiles(reality, outputArray)
             if (reality.isFile) {
                 var used = false
