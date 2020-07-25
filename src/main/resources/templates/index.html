@@ -1,9 +1,31 @@
 <!DOCTYPE HTML>
-<html>
+<html lang="zh-Hans" xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>主页标题</title>
+    <!--/*@thymesVar id="sitename" type="java.lang.String"*/-->
+    <title th:text="${sitename}">主页标题</title>
+    <meta charset="UTF-8">
 </head>
 <body>
-正文
+    <!--/*@thymesVar id="sitename" type="java.lang.String"*/-->
+    <h1 th:text="${sitename}">站点名</h1>
+    <table>
+        <tr>
+            <th>标题</th>
+            <th>作者</th>
+            <th>发布日期</th>
+            <th>修改日期</th>
+        </tr>
+        <!--/*@thymesVar id="htmls" type="Array<MutableMap<String, String>>"*/-->
+        <tr th:each="i:${htmls}">
+            <!--/*@thymesVar id="title" type="java.lang.String"*/-->
+            <td>
+                <a th:text="${i['title']}" th:href="@{${i['url']}}">男子一个滑铲杀死一头东北虎</a>
+            </td>
+            <td th:text="${i['author']}">震惊部</td>
+            <td th:text="${i['publishTime']}">2020年07月25日</td>
+            <td th:text="${i['editTime']}">2020年07月25日</td>
+        </tr>
+    </table>
 </body>
 </html>

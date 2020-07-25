@@ -7,6 +7,7 @@ class MakeTasks {
     companion object {
         val copyTask = CopyTask()
         val htmlTask = HtmlTask()
+        val mainPageTask=MainPageTask()
     }
 }
 
@@ -62,15 +63,15 @@ class HtmlTask : MakeTask {
         val md = FileUtils.fileRead(mdFile.canonicalPath)
         val mdHtml = MdToHTMLUtil.render(md)
 
-        val attributes= hashMapOf<String,Any>()
+        val attributes = hashMapOf<String, Any>()
 
-        val document=XMLUtil.readXMLDocument(xmlFile.canonicalPath)
+        val document = XMLUtil.readXMLDocument(xmlFile.canonicalPath)
         document?.rootElement?.element("attributes")?.elements()?.forEach {
-            attributes+=it.attribute("ID").stringValue to it.textTrim
+            attributes += it.attribute("ID").stringValue to it.textTrim
         }
-        attributes+="md" to md
-        attributes+="html" to mdHtml
-        attributes+=ConfigUtil.siteAttributes
+        attributes += "md" to md
+        attributes += "html" to mdHtml
+        attributes += ConfigUtil.siteAttributes
 
         val outputHtml = HTMLTemplateUtil.render(modelName, attributes)
         println("渲染$mdFile->$target")
@@ -80,18 +81,41 @@ class HtmlTask : MakeTask {
 
 /**
  * 用所给输入文章内容页构建一个主页
- * TODO 决定到底是用md文件输入还是用html文件输入。
- * 或许无输入更好（只有模板输入），始终构建，主动扫描
  */
-class MainPageTask:MakeTask{
+class MainPageTask : MakeTask {
     override fun invoke(source: List<File>, target: File) {
-        /**
-         * 扫描所有mdxml文件，得到站点结构和所有文章的属性{数据结构？}
-         * 按照修改时间对输出文件排序
-         * 附加站点属性，模板渲染
-         *
-         * 那么传递给模板的数据有站点属性String to String，文章属性String to HashMap
-         */
+        val modelFile = source.last()
+        val mdXmlList = source - modelFile
+
+        var htmls = emptyArray<MutableMap<String, String>>()
+        mdXmlList.forEach {
+            val document = XMLUtil.readXMLDocument(it.canonicalPath)
+            if (document != null) {
+                val map = emptyMap<String, String>().toMutableMap()
+                document.rootElement.element("attributes").elements().forEach {
+                    map += it.attribute("ID").stringValue to it.textTrim
+                }
+                map += "url" to getRelativeOutputFileOfMd(it)
+                htmls += map
+            }
+        }
+
+        htmls.sortBy {
+            it["editTime"]
+        }
+
+        val attributes= hashMapOf<String,Any>()
+
+        attributes+="htmls" to htmls
+        attributes+=ConfigUtil.siteAttributes
+
+        val outputHtml=HTMLTemplateUtil.render(modelFile.nameWithoutExtension, attributes)
+        println("渲染主页$target")
+        FileUtils.fileWrite(target.canonicalPath, outputHtml)
     }
 
+    fun getRelativeOutputFileOfMd(mdFile: File) =
+        mdFile.relativeTo(File(ConfigUtil.inputPath)).toString().replace(".md.xml", ".html")
+
+    //TODO 加入多文件生成功能，因为主页不一定只有一页
 }
