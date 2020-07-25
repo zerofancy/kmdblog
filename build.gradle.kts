@@ -3,7 +3,8 @@ plugins {
 }
 
 group = "top.ntutn"
-version = "1.0-SNAPSHOT"
+version = "1.0"
+//version = "1.0-SNAPSHOT"
 
 repositories {
     mavenCentral()

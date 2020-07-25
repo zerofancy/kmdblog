@@ -40,7 +40,9 @@ class ConfigUtil {
             private set
         var templatePath: String
             private set
-        var siteAttributes:HashMap<String,String>
+        var siteAttributes: HashMap<String, String>
+            private set
+        var noCleanFiles: Array<File>
             private set
 
         /**
@@ -79,8 +81,15 @@ class ConfigUtil {
             }
 
             //读取所有的站点配置
-            siteAttributes= HashMap<String,String>()
-            document.rootElement.element("attributes").elements().forEach{
+            siteAttributes = HashMap<String, String>()
+
+            //读取不会被删除的文件配置
+            noCleanFiles = emptyArray<File>()
+            document.rootElement.element("noclean").elements().forEach {
+                noCleanFiles += File(it.textTrim)
+            }
+
+            document.rootElement.element("attributes").elements().forEach {
                 siteAttributes[it.attributeValue("ID")] = it.textTrim
             }
 
@@ -95,7 +104,7 @@ class ConfigUtil {
             val inputDir = File(inputPath)
             val outputDir = File(outputPath)
             val staticDir = File(staticPath)
-            val staticResDir=File(staticPath,"./res")
+            val staticResDir = File(staticPath, "./res")
             val templateDir = File(templatePath)
 
             if (!inputDir.exists()) {

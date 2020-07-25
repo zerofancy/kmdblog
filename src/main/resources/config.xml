@@ -9,4 +9,12 @@
         <attr ID="sitename">归零幻想的博客</attr>
         <varible ID="defaultAuthor">归零幻想</varible>
     </attributes>
+    <!--
+    配置不会被自动清理的文件（夹）。
+    有时你可能想把输出文件改为根目录，把源码文件等放到子目录。
+    此时，因为源码文件没有『依赖』会被自动删除，你可以把他们添加到这里。
+    -->
+    <noclean>
+        <file>/example</file>
+    </noclean>
 </root>
