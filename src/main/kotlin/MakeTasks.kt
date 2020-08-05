@@ -1,6 +1,7 @@
 package top.ntutn
 
 import org.apache.commons.io.FileUtils
+import java.beans.ConstructorProperties
 import java.io.File
 
 class MakeTasks {
@@ -16,7 +17,11 @@ class MakeTasks {
  * 构建任务
  */
 interface MakeTask {
-    fun invoke(source: List<File>, target: File)
+    fun invoke(source: List<File>, target: File, properties: Map<String, Any>)
+
+    fun invoke(source: List<File>, target: File){
+        invoke(source,target, emptyMap())
+    }
 }
 
 /**
@@ -33,14 +38,14 @@ private fun checkReadable(file: File): Boolean {
  * 不做任何事情
  */
 class NoOperationTask : MakeTask {
-    override fun invoke(source: List<File>, target: File) = Unit
+    override fun invoke(source: List<File>, target: File, properties: Map<String, Any>) = Unit
 }
 
 /**
  * 复制任务，简单将第一个依赖文件复制为目标文件
  */
 class CopyTask : MakeTask {
-    override fun invoke(source: List<File>, target: File) {
+    override fun invoke(source: List<File>, target: File, properties: Map<String, Any>) {
         if (source.isEmpty() || !checkReadable(source[0])) {
             return
         }
@@ -59,7 +64,7 @@ class CopyTask : MakeTask {
  */
 class HtmlTask : MakeTask {
 
-    override fun invoke(source: List<File>, target: File) {
+    override fun invoke(source: List<File>, target: File, properties: Map<String, Any>) {
         if (source.size < 3 || !checkReadable(source[0]) || !checkReadable(source[1]) || !checkReadable(source[2])) {
             return
         }
@@ -91,7 +96,7 @@ class HtmlTask : MakeTask {
  * 用所给输入文章内容页构建一个主页
  */
 class MainPageTask : MakeTask {
-    override fun invoke(source: List<File>, target: File) {
+    override fun invoke(source: List<File>, target: File, properties: Map<String, Any>) {
         val modelFile = source.last()
         val mdXmlList = source - modelFile
 
