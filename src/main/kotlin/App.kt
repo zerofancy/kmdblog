@@ -30,6 +30,11 @@ fun main() {
 
     //生成首页
     var mdXmls = scanMdXmls(File(ConfigUtil.inputPath), emptyArray())
+    //每x个生成一个页面
+    //TODO MakeTask带参数
+    MdToHTMLUtil.averageAssignFixLength(mdXmls.toList(),5).forEach {
+
+    }
     mdXmls += File(ConfigUtil.templatePath, "index.html")
     dependencyList.add(
         MakeDependency(
