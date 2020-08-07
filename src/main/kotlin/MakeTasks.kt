@@ -19,8 +19,8 @@ class MakeTasks {
 interface MakeTask {
     fun invoke(source: List<File>, target: File, properties: Map<String, Any>)
 
-    fun invoke(source: List<File>, target: File){
-        invoke(source,target, emptyMap())
+    fun invoke(source: List<File>, target: File) {
+        invoke(source, target, emptyMap())
     }
 }
 
@@ -96,6 +96,9 @@ class HtmlTask : MakeTask {
  * 用所给输入文章内容页构建一个主页
  */
 class MainPageTask : MakeTask {
+    /**
+     * @param properties properties应该传递当前页码pageNum，页面总数pageCount，当前页面条目数量itemCount，单页面条目数量限制itemCountLimit
+     */
     override fun invoke(source: List<File>, target: File, properties: Map<String, Any>) {
         val modelFile = source.last()
         val mdXmlList = source - modelFile
@@ -121,13 +124,14 @@ class MainPageTask : MakeTask {
 
         attributes += "htmls" to htmls
         attributes += ConfigUtil.siteAttributes
+        attributes += properties
 
         val outputHtml = HTMLTemplateUtil.render(modelFile.nameWithoutExtension, attributes)
         println("渲染主页$target")
         FileUtils.fileWrite(target.canonicalPath, outputHtml)
     }
 
-    fun getRelativeOutputFileOfMd(mdFile: File) =
+    private fun getRelativeOutputFileOfMd(mdFile: File) =
         mdFile.relativeTo(File(ConfigUtil.inputPath)).toString().replace(".md.xml", ".html")
 
     //TODO 加入多文件生成功能，因为主页不一定只有一页
