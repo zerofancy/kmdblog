@@ -42,11 +42,11 @@ fun main() {
         val tmpList = it.toMutableList()
         val firstPageName = "index.html"
         val pageName = "index$counter.html"
-        tmpList += File(ConfigUtil.templatePath, "index${if (counter == 1) firstPageName else pageName}.html")
+        tmpList += File(ConfigUtil.templatePath, "index.html")
         dependencyList.add(
             MakeDependency(
                 tmpList,
-                File(ConfigUtil.outputPath, "index.html"),
+                File(ConfigUtil.outputPath, if (counter == 1) firstPageName else pageName),
                 MakeTasks.mainPageTask,
                 mapOf(
                     "pageNum" to counter,
