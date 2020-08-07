@@ -29,20 +29,35 @@ fun main() {
     scanMdFolder(File(ConfigUtil.inputPath), dependencyList)
 
     //生成首页
-    var mdXmls = scanMdXmls(File(ConfigUtil.inputPath), emptyArray())
+    val mdXmls = scanMdXmls(File(ConfigUtil.inputPath), emptyArray())
     //每x个生成一个页面
     //TODO MakeTask带参数
-    MdToHTMLUtil.averageAssignFixLength(mdXmls.toList(),5).forEach {
-
+    var counter = 1;
+    var splitItemNum = ConfigUtil.siteAttributes["indexSplitItemNum"]?.toInt() ?: 5
+    if (splitItemNum < 1) {
+        splitItemNum = 5
     }
-    mdXmls += File(ConfigUtil.templatePath, "index.html")
-    dependencyList.add(
-        MakeDependency(
-            mdXmls.toList(),
-            File(ConfigUtil.outputPath, "index.html"),
-            MakeTasks.mainPageTask
+    val depList = MdToHTMLUtil.averageAssignFixLength(mdXmls.toList(), splitItemNum)
+    depList.forEach {
+        val tmpList = it.toMutableList()
+        val firstPageName = "index.html"
+        val pageName = "index$counter.html"
+        tmpList += File(ConfigUtil.templatePath, "index${if (counter == 1) firstPageName else pageName}.html")
+        dependencyList.add(
+            MakeDependency(
+                tmpList,
+                File(ConfigUtil.outputPath, "index.html"),
+                MakeTasks.mainPageTask,
+                mapOf(
+                    "pageNum" to counter,
+                    "pageCount" to depList.size,
+                    "itemCount" to it.size,
+                    "itemCountLimit" to splitItemNum
+                )
+            )
         )
-    )
+        counter++
+    }
 
     dependencyList.forEach {
         if (it.shouldMakeAgain()) {
@@ -123,9 +138,9 @@ fun scanMdFolder(root: File, arrayDependency: LinkedList<MakeDependency>) {
 fun updateMdXml(md: File, mdXml: File) {
     var mdXmlDocument: Document? = XMLUtil.readXMLDocument(mdXml.toString())
     val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd")
-    var edited=false
+    var edited = false
     if (mdXmlDocument == null) {
-        edited=true
+        edited = true
         println("未找到${md}的配置文件")
         mdXmlDocument = DocumentFactory.getInstance().createDocument()
         val attrElement = mdXmlDocument.addElement("article").addElement("attributes")
@@ -143,11 +158,11 @@ fun updateMdXml(md: File, mdXml: File) {
     }
     mdXmlDocument!!
     //更新修改日期
-    if(md.lastModified()>mdXml.lastModified()){
-        edited=true
+    if (md.lastModified() > mdXml.lastModified()) {
+        edited = true
         mdXmlDocument.elementByID("editTime").text = simpleDateFormat.format(md.lastModified())
     }
-    if (edited){
+    if (edited) {
         XMLUtil.writeXMLDocument(mdXmlDocument, mdXml)
     }
 }

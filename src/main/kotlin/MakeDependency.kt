@@ -1,6 +1,7 @@
 package top.ntutn
 
 import java.io.File
+import java.util.*
 
 /**
  * 用于存储文件之间的依赖关系的数据结构
@@ -8,10 +9,15 @@ import java.io.File
  * @param targetFile 此构建关系应该产生的目标文件
  * @param makeTask 执行构建的函数
  */
-class MakeDependency(val sourceFiles: List<File>, val targetFile: File, var makeTask:MakeTask) {
-    companion object{
-        val TARGET_NO_MAKE="TARGET_NO_MAKE"
-        val TARGET_ALWAYS_MAKE="TARGET_ALWAYS_MAKE"
+class MakeDependency(
+    val sourceFiles: List<File>,
+    val targetFile: File,
+    var makeTask: MakeTask,
+    val properties: Map<String, Any>? = null
+) {
+    companion object {
+        const val TARGET_NO_MAKE = "TARGET_NO_MAKE"
+        const val TARGET_ALWAYS_MAKE = "TARGET_ALWAYS_MAKE"
     }
 
     /**
@@ -20,7 +26,7 @@ class MakeDependency(val sourceFiles: List<File>, val targetFile: File, var make
      */
     fun shouldMakeAgain(): Boolean {
         sourceFiles.forEach {
-            if(it.name == TARGET_NO_MAKE){
+            if (it.name == TARGET_NO_MAKE) {
                 return false
             }
             if (it.name == TARGET_ALWAYS_MAKE || it.lastModified() > targetFile.lastModified()) {
@@ -40,7 +46,11 @@ class MakeDependency(val sourceFiles: List<File>, val targetFile: File, var make
                 return false
             }
         }
-        makeTask.invoke(sourceFiles,targetFile)
+        if (properties == null) {
+            makeTask.invoke(sourceFiles, targetFile)
+        } else {
+            makeTask.invoke(sourceFiles, targetFile, properties)
+        }
         return targetFile.exists()
     }
 }
