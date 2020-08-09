@@ -20,6 +20,7 @@ class HTMLTemplateUtil {
             resolver.setTemplateMode("HTML")
             resolver.order = templateEngine.templateResolvers.size
             resolver.isCacheable = false
+            resolver.characterEncoding = "UTF-8"
             templateEngine.addTemplateResolver(resolver)
         }
 
