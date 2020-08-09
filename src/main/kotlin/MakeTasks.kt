@@ -57,6 +57,15 @@ class CopyTask : MakeTask {
     }
 }
 
+fun createEmptyFile(file: File){
+    if(!file.exists()){
+        if(!file.parentFile.exists()){
+            file.parentFile.mkdirs()
+        }
+        file.createNewFile()
+    }
+}
+
 /**
  * 用所给md和模板渲染出一个内容网页
  * 源文件传入第一个参数为md文件，第二个参数为xm，第三个参数为模板
@@ -87,6 +96,7 @@ class HtmlTask : MakeTask {
 
         val outputHtml = HTMLTemplateUtil.render(modelName, attributes)
         println("渲染$mdFile->$target")
+        createEmptyFile(target)
         target.writeText(outputHtml)
     }
 }
@@ -115,7 +125,7 @@ class MainPageTask : MakeTask {
             }
         }
 
-        htmls.sortBy {
+        htmls.sortByDescending {
             it["editTime"]
         }
 
@@ -127,11 +137,12 @@ class MainPageTask : MakeTask {
 
         val outputHtml = HTMLTemplateUtil.render(modelFile.nameWithoutExtension, attributes)
         println("渲染主页$target")
+        createEmptyFile(target)
         target.writeText(outputHtml)
     }
 
     private fun getRelativeOutputFileOfMd(mdFile: File) =
-        mdFile.relativeTo(File(ConfigUtil.inputPath)).toString().replace(".md.xml", ".html")
+        mdFile.relativeTo(File(ConfigUtil.inputPath)).toString().removeSuffix(".md.xml")+ ".html"
 
     //TODO 加入多文件生成功能，因为主页不一定只有一页
 }
