@@ -7,6 +7,8 @@ import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.*
 
 fun main() {
@@ -22,16 +24,19 @@ fun main() {
     //遍历静态文件夹，添加依赖
     scanStaticFolder(File(ConfigUtil.staticPath), dependencyList, ConfigUtil.outputPath)
     //res还需要复制到其他文件夹
-    scanStaticFolder(File(ConfigUtil.staticPath + "/res"), dependencyList, ConfigUtil.inputPath)
-    scanStaticFolder(File(ConfigUtil.staticPath + "/res"), dependencyList, ConfigUtil.templatePath)
+//    scanStaticFolder(File(ConfigUtil.staticPath + "/res"), dependencyList, ConfigUtil.inputPath)
+//    scanStaticFolder(File(ConfigUtil.staticPath + "/res"), dependencyList, ConfigUtil.templatePath)
 
     //生成文章内容页
     scanMdFolder(File(ConfigUtil.inputPath), dependencyList)
 
     //生成首页
-    val mdXmls = scanMdXmls(File(ConfigUtil.inputPath), emptyArray())
+    val mdXmls = scanMdXmls(File(ConfigUtil.inputPath), emptyArray()).sortedByDescending {
+        val date = XMLUtil.readXMLDocument(it.canonicalPath)?.elementByID("editTime")?.textTrim
+        LocalDate.parse(date, DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+    }
     //每x个生成一个页面
-    //TODO MakeTask带参数
+
     var counter = 1;
     var splitItemNum = ConfigUtil.siteAttributes["indexSplitItemNum"]?.toInt() ?: 5
     if (splitItemNum < 1) {
@@ -93,7 +98,7 @@ fun scanMdXmls(root: File, array: Array<File>): Array<File> {
     }
     root.listFiles()?.forEach {
         if (it.isDirectory) {
-            scanMdXmls(it, array)
+            res += scanMdXmls(it, array)
             return@forEach
         }
         if (it.name.endsWith(".md.xml")) {
@@ -128,7 +133,10 @@ fun scanMdFolder(root: File, arrayDependency: LinkedList<MakeDependency>) {
         if (it.name.endsWith(".md")) {
             val mdXml = File(it.parent, it.name + ".xml")
             val model = File(ConfigUtil.templatePath, "article.html")
-            val target = File(ConfigUtil.outputPath, it.nameWithoutExtension + ".html")
+            val target = File(
+                ConfigUtil.outputPath,
+                it.relativeToOrSelf(File(ConfigUtil.inputPath)).toString().removeSuffix(".md") + ".html"
+            )
             updateMdXml(it, mdXml)
             arrayDependency.add(MakeDependency(listOf(it, mdXml, model), target, MakeTasks.htmlTask))
         }
@@ -144,7 +152,7 @@ fun updateMdXml(md: File, mdXml: File) {
         println("未找到${md}的配置文件")
         mdXmlDocument = DocumentFactory.getInstance().createDocument()
         val attrElement = mdXmlDocument.addElement("article").addElement("attributes")
-        XMLUtil.createElement(attrElement, "attr", hashMapOf("ID" to "title"), md.name.replace(".md", ""))
+        XMLUtil.createElement(attrElement, "attr", hashMapOf("ID" to "title"), md.name.removeSuffix(".md"))
         XMLUtil.createElement(attrElement, "attr", hashMapOf("ID" to "keywords"), "文章|关键词")
         XMLUtil.createElement(attrElement, "attr", hashMapOf("ID" to "abs"), "文章的简介")
         XMLUtil.createElement(attrElement, "attr", hashMapOf("ID" to "publishTime"), simpleDateFormat.format(Date()))
