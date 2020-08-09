@@ -1,7 +1,6 @@
 package top.ntutn
 
 import org.apache.commons.io.FileUtils
-import java.beans.ConstructorProperties
 import java.io.File
 
 class MakeTasks {
@@ -73,7 +72,7 @@ class HtmlTask : MakeTask {
         val modelFile = source[2]
         val modelName = modelFile.nameWithoutExtension
 
-        val md = FileUtils.fileRead(mdFile.canonicalPath)
+        val md = File(mdFile.canonicalPath).readText()
         val mdHtml = MdToHTMLUtil.render(md)
 
         val attributes = hashMapOf<String, Any>()
@@ -88,7 +87,7 @@ class HtmlTask : MakeTask {
 
         val outputHtml = HTMLTemplateUtil.render(modelName, attributes)
         println("渲染$mdFile->$target")
-        FileUtils.fileWrite(target.canonicalPath, outputHtml)
+        target.writeText(outputHtml)
     }
 }
 
@@ -128,7 +127,7 @@ class MainPageTask : MakeTask {
 
         val outputHtml = HTMLTemplateUtil.render(modelFile.nameWithoutExtension, attributes)
         println("渲染主页$target")
-        FileUtils.fileWrite(target.canonicalPath, outputHtml)
+        target.writeText(outputHtml)
     }
 
     private fun getRelativeOutputFileOfMd(mdFile: File) =
