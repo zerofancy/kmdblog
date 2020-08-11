@@ -143,6 +143,4 @@ class MainPageTask : MakeTask {
 
     private fun getRelativeOutputFileOfMd(mdFile: File) =
         mdFile.relativeTo(File(ConfigUtil.inputPath)).toString().removeSuffix(".md.xml")+ ".html"
-
-    //TODO 加入多文件生成功能，因为主页不一定只有一页
 }
