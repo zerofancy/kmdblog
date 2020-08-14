@@ -20,6 +20,9 @@ dependencies {
     implementation ("com.vladsch.flexmark:flexmark-util:0.62.2")
     implementation ("com.vladsch.flexmark:flexmark-ext-tables:0.62.2")
     implementation ("com.vladsch.flexmark:flexmark-ext-toc:0.62.2")
+    implementation ("com.vladsch.flexmark:flexmark-ext-gfm-strikethrough:0.62.2")
+    implementation ("com.vladsch.flexmark:flexmark-ext-footnotes:0.62.2")
+    implementation ("com.vladsch.flexmark:flexmark-ext-gfm-tasklist:0.62.2")
 }
 
 // https://stackoverflow.com/questions/48553029/how-do-i-overwrite-a-task-in-gradle-kotlin-dsl
