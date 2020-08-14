@@ -18,9 +18,18 @@
 
 ### 开源项目
 
-本软件的诞生离不开以下开源项目的支持。
+本项目的诞生离不开以下开源项目的支持。
 
 - [commons-io](https://commons.apache.org/proper/commons-io/)
 - [dom4j](https://dom4j.github.io/)
+- [flexmark-java](https://github.com/vsch/flexmark-java)
 - [Slf4j](http://www.slf4j.org/)
 - [Thymeleaf](https://www.thymeleaf.org/)
+
+> flexmark-java对于我这个小项目实在太庞大了，因此只引用了其中的一部分组件。具体引入的插件有：
+>
+> - 表格插件`TablesExtension`
+> - 目录插件`TocExtension`
+> - 删除线插件`StrikethroughExtension`
+> - 脚注插件`FootnoteExtension`
+> - 任务列表插件`TaskListExtension`

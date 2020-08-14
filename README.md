@@ -6,7 +6,7 @@
 >
 > 自用。
 
-## 构想
+## 构想与设计
 
 首先最近在学Kotlin，那就用Kotlin做了，最后打成一个fatJar。
 
@@ -64,3 +64,7 @@ java -jar kmdblog-fat.jar
     </noclean>
 </root>        
 ```
+
+## LICENSE
+
+本项目遵循[MIT License](LICENSE)，项目中引用第三方组件的情况见[本项目初次启动默认生成的关于文件](src/main/resources/input/about.md)。
