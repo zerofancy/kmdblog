@@ -3,6 +3,7 @@ package top.ntutn
 import org.dom4j.Branch
 import org.dom4j.Document
 import org.dom4j.Element
+import org.dom4j.io.OutputFormat
 import org.dom4j.io.SAXReader
 import org.dom4j.io.XMLWriter
 import java.io.File
@@ -28,7 +29,9 @@ class XMLUtil {
             if(file.exists()){
                 file.delete()
             }
-            val xmlWriter= XMLWriter(FileWriter(file))
+            val format: OutputFormat = OutputFormat.createPrettyPrint()
+            format.encoding = document.xmlEncoding
+            val xmlWriter= XMLWriter(FileWriter(file),format)
             xmlWriter.write(document)
             xmlWriter.close()
         }
