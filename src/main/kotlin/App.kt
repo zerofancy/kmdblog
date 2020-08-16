@@ -48,6 +48,7 @@ fun main() {
         val firstPageName = "index.html"
         val pageName = "index$counter.html"
         tmpList += File(ConfigUtil.templatePath, "index.html")
+        tmpList += File(MakeDependency.TARGET_ALWAYS_MAKE)
         //TODO 修改主页生成逻辑，主页应该依赖整个列表，将范围作为参数传递，避免修改不刷新的问题
         //或者ALWAYS_MAKE也可以
         dependencyList.add(

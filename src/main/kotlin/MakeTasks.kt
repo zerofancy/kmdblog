@@ -57,9 +57,9 @@ class CopyTask : MakeTask {
     }
 }
 
-fun createEmptyFile(file: File){
-    if(!file.exists()){
-        if(!file.parentFile.exists()){
+fun createEmptyFile(file: File) {
+    if (!file.exists()) {
+        if (!file.parentFile.exists()) {
             file.parentFile.mkdirs()
         }
         file.createNewFile()
@@ -109,11 +109,16 @@ class MainPageTask : MakeTask {
      * @param properties properties应该传递当前页码pageNum，页面总数pageCount，当前页面条目数量itemCount，单页面条目数量限制itemCountLimit
      */
     override fun invoke(source: List<File>, target: File, properties: Map<String, Any>) {
-        val modelFile = source.last()
+        val modelFile = source.last {
+            it.canonicalPath.contains(ConfigUtil.templatePath)
+        }
         val mdXmlList = source - modelFile
 
         var htmls = emptyArray<MutableMap<String, String>>()
         mdXmlList.forEach {
+            if (it.name.equals(MakeDependency.TARGET_ALWAYS_MAKE) || it.name.equals(MakeDependency.TARGET_NO_MAKE)) {
+                return@forEach
+            }
             val document = XMLUtil.readXMLDocument(it.canonicalPath)
             if (document != null) {
                 val map = emptyMap<String, String>().toMutableMap()
@@ -142,5 +147,5 @@ class MainPageTask : MakeTask {
     }
 
     private fun getRelativeOutputFileOfMd(mdFile: File) =
-        mdFile.relativeTo(File(ConfigUtil.inputPath)).toString().removeSuffix(".md.xml")+ ".html"
+        mdFile.relativeTo(File(ConfigUtil.inputPath)).toString().removeSuffix(".md.xml") + ".html"
 }
