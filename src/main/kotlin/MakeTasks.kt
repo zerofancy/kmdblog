@@ -2,6 +2,10 @@ package top.ntutn
 
 import org.apache.commons.io.FileUtils
 import java.io.File
+import java.text.DateFormat
+import java.text.SimpleDateFormat
+import java.util.*
+
 
 class MakeTasks {
     companion object {
@@ -125,6 +129,7 @@ class MainPageTask : MakeTask {
                 document.rootElement.element("attributes").elements().forEach {
                     map += it.attribute("ID").stringValue to it.textTrim
                 }
+                map+="editTime2822" to convertTimeTo2822(map["editTime"]?:"1970-01-01")
                 map += "url" to getRelativeOutputFileOfMd(it)
                 htmls += map
             }
@@ -148,4 +153,11 @@ class MainPageTask : MakeTask {
 
     private fun getRelativeOutputFileOfMd(mdFile: File) =
         mdFile.relativeTo(File(ConfigUtil.inputPath)).toString().removeSuffix(".md.xml") + ".html"
+
+    private fun convertTimeTo2822(time:String):String{
+        val fmt1: DateFormat = SimpleDateFormat("yyyy-MM-dd")
+        val fmt2 = SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss z", Locale.US)
+        val date=fmt1.parse(time)
+        return fmt2.format(date)
+    }
 }
