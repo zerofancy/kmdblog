@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+    <channel>
+        <title th:text="${sitename}">林德熙</title>
+        <description th:text="${rssdescription}">Windows 10 Developer</description>
+        <link>[(${siteurl})]</link>
+        <item th:each="i:${htmls}">
+            <title th:text="${i['title']}">第一篇</title>
+            <description th:text="${i['abs']}">摘要</description>
+            <author th:text="${i['author']}">作者</author>
+            <pubDate th:text="${i['editTime']}">发布时间</pubDate>
+            <link>[(${siteurl}+'/'+${i['url']})]</link>
+        </item>
+    </channel>
+</rss>

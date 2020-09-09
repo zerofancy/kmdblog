@@ -10,6 +10,8 @@
         <attr ID="defaultAuthor">归零幻想</attr>
         <!--主页每页显示的item数量-->
         <attr ID="indexSplitItemNum">5</attr>
+        <attr ID="rssdescription">一枚准程序猿。</attr>
+        <attr ID="siteurl">http://localhost:8080</attr>
     </attributes>
     <!--
     配置不会被自动清理的文件（夹）。

@@ -140,6 +140,12 @@ class ConfigUtil {
                 copyResourceTo("/templates/article.html", articleHtmlPath)
             }
 
+            val rssHtmlPath = getAbsolutePath(templatePath, "./rss.html")
+            if (!File(rssHtmlPath).exists()) {
+                println("RSS模板文件不存在！")
+                copyResourceTo("/templates/rss.html", rssHtmlPath)
+            }
+
             val faviconPath = getAbsolutePath(staticPath, "./favicon.ico")
             if (!File(faviconPath).exists()) {
                 println("网站图标不存在！")

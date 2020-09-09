@@ -141,7 +141,7 @@ class MainPageTask : MakeTask {
         attributes += properties
 
         val outputHtml = HTMLTemplateUtil.render(modelFile.nameWithoutExtension, attributes)
-        println("渲染主页$target")
+        println("使用$modelFile 渲染$target")
         createEmptyFile(target)
         target.writeText(outputHtml)
     }

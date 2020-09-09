@@ -47,10 +47,27 @@ fun main() {
         val tmpList = it.toMutableList()
         val firstPageName = "index.html"
         val pageName = "index$counter.html"
+        if (counter == 1) {
+            println("渲染rss订阅页面。")
+            val tmpList2 = tmpList.toMutableList()
+            tmpList2 += File(ConfigUtil.templatePath, "rss.html")
+            tmpList2 += File(MakeDependency.TARGET_ALWAYS_MAKE)
+            dependencyList.add(
+                MakeDependency(
+                    tmpList2,
+                    File(ConfigUtil.outputPath, "rss.xml"),
+                    MakeTasks.mainPageTask,
+                    mapOf(
+                        "pageNum" to counter,
+                        "pageCount" to depList.size,
+                        "itemCount" to it.size,
+                        "itemCountLimit" to splitItemNum
+                    )
+                )
+            )
+        }
         tmpList += File(ConfigUtil.templatePath, "index.html")
         tmpList += File(MakeDependency.TARGET_ALWAYS_MAKE)
-        //TODO 修改主页生成逻辑，主页应该依赖整个列表，将范围作为参数传递，避免修改不刷新的问题
-        //或者ALWAYS_MAKE也可以
         dependencyList.add(
             MakeDependency(
                 tmpList,
