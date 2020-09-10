@@ -120,7 +120,7 @@ class MainPageTask : MakeTask {
 
         var htmls = emptyArray<MutableMap<String, String>>()
         mdXmlList.forEach {
-            if (it.name.equals(MakeDependency.TARGET_ALWAYS_MAKE) || it.name.equals(MakeDependency.TARGET_NO_MAKE)) {
+            if (it.name == MakeDependency.TARGET_ALWAYS_MAKE || it.name == MakeDependency.TARGET_NO_MAKE) {
                 return@forEach
             }
             val document = XMLUtil.readXMLDocument(it.canonicalPath)
@@ -129,7 +129,7 @@ class MainPageTask : MakeTask {
                 document.rootElement.element("attributes").elements().forEach {
                     map += it.attribute("ID").stringValue to it.textTrim
                 }
-                map+="editTime2822" to convertTimeTo2822(map["editTime"]?:"1970-01-01")
+                map += "editTime2822" to convertTimeTo2822(map["editTime"] ?: "1970-01-01")
                 map += "url" to getRelativeOutputFileOfMd(it)
                 htmls += map
             }
@@ -154,10 +154,10 @@ class MainPageTask : MakeTask {
     private fun getRelativeOutputFileOfMd(mdFile: File) =
         mdFile.relativeTo(File(ConfigUtil.inputPath)).toString().removeSuffix(".md.xml") + ".html"
 
-    private fun convertTimeTo2822(time:String):String{
+    private fun convertTimeTo2822(time: String): String {
         val fmt1: DateFormat = SimpleDateFormat("yyyy-MM-dd")
         val fmt2 = SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss z", Locale.US)
-        val date=fmt1.parse(time)
+        val date = fmt1.parse(time)
         return fmt2.format(date)
     }
 }
