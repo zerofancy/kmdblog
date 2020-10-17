@@ -1,25 +1,56 @@
 package top.ntutn
 
+import net.sourceforge.argparse4j.ArgumentParsers
+import net.sourceforge.argparse4j.inf.ArgumentParserException
 import org.apache.commons.io.FileUtils
 import org.dom4j.Document
 import org.dom4j.DocumentFactory
+import org.slf4j.LoggerFactory
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
+import java.security.NoSuchAlgorithmException
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.*
+import kotlin.system.exitProcess
 
-fun main() {
-    println("kmdblog已经启动！")
+val logger = LoggerFactory.getLogger(Unit::class.java)
+
+fun main(args: Array<String>) {
+    logger.trace("kmdblog启动。")
+
+    val parser = ArgumentParsers.newFor("kmdblog").build()
+    parser.defaultHelp(true)
+        .description("生成博客的静态网页")
+        .addArgument("-n", "--new")
+        .nargs("?")
+        .help("创建一个新的博客。")
+
+    val namespace = try {
+        parser.parseArgs(args)
+    } catch (e: ArgumentParserException) {
+        parser.handleError(e)
+        exitProcess(1)
+    }
+
+    val createNew = try {
+        namespace.get<String>("new")
+    } catch (e: NoSuchAlgorithmException) {
+        e
+    }
+    if (createNew is String) {
+        logger.info("Create a new blog $createNew")
+        createNewBlog(createNew)
+        return
+    }
 
     HTMLTemplateUtil.initEngine(ConfigUtil.templatePath)
 
     val dependencyList = LinkedList<MakeDependency>()
 
     //保证嵌套时源文件不被删除
-
 
     //遍历静态文件夹，添加依赖
     scanStaticFolder(File(ConfigUtil.staticPath), dependencyList, ConfigUtil.outputPath)
@@ -48,7 +79,7 @@ fun main() {
         val firstPageName = "index.html"
         val pageName = "index$counter.html"
         if (counter == 1) {
-            println("渲染rss订阅页面。")
+            logger.trace("渲染rss订阅页面。")
             val tmpList2 = tmpList.toMutableList()
             tmpList2 += File(ConfigUtil.templatePath, "rss.html")
             tmpList2 += File(MakeDependency.TARGET_ALWAYS_MAKE)
@@ -99,6 +130,21 @@ fun main() {
     removeEmptyFolders(File(ConfigUtil.outputPath, "./res"))
 }
 
+fun createNewBlog(filename: String) {
+    val newFile=File(ConfigUtil.inputPath, filename)
+    if(newFile.exists()){
+        logger.warn("文件${newFile}已经存在！")
+        exitProcess(1)
+    }
+    val newFileContent = """
+        ---
+        title: $filename
+        date: ${Date()}
+        tags: [tag1,tag2]
+        ---
+    """.trimIndent()
+    FileUtils.fileWrite(newFile.canonicalPath, newFileContent)
+}
 
 /**
  * 扫描输入文件夹，返回所有mdXml文件，以便生成主页
