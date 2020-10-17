@@ -52,7 +52,7 @@ class CopyTask : MakeTask {
         if (source.isEmpty() || !checkReadable(source[0])) {
             return
         }
-        println("复制" + source[0] + "到" + target)
+        logger.debug("复制" + source[0] + "到" + target)
         val parentFile = target.parentFile
         if (!parentFile.exists()) {
             parentFile.mkdirs()
@@ -99,7 +99,7 @@ class HtmlTask : MakeTask {
         attributes += ConfigUtil.siteAttributes
 
         val outputHtml = HTMLTemplateUtil.render(modelName, attributes)
-        println("渲染$mdFile->$target")
+        logger.info("渲染$mdFile->$target")
         createEmptyFile(target)
         target.writeText(outputHtml)
     }
@@ -146,7 +146,7 @@ class MainPageTask : MakeTask {
         attributes += properties
 
         val outputHtml = HTMLTemplateUtil.render(modelFile.nameWithoutExtension, attributes)
-        println("使用$modelFile 渲染$target")
+        logger.info("使用$modelFile 渲染$target")
         createEmptyFile(target)
         target.writeText(outputHtml)
     }

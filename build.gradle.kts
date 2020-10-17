@@ -15,7 +15,8 @@ dependencies {
     implementation("org.dom4j:dom4j:2.1.3")
     implementation("commons-io:commons-io:20030203.000550")
     implementation("org.thymeleaf:thymeleaf:3.0.11.RELEASE")
-    implementation("org.slf4j:slf4j-simple:1.7.30")
+    implementation("org.slf4j:slf4j-api:1.7.30")
+    implementation("org.apache.logging.log4j:log4j-slf4j-impl:2.13.3")
     implementation ("com.vladsch.flexmark:flexmark:0.62.2")
     implementation ("com.vladsch.flexmark:flexmark-util:0.62.2")
     implementation ("com.vladsch.flexmark:flexmark-ext-tables:0.62.2")
@@ -23,6 +24,7 @@ dependencies {
     implementation ("com.vladsch.flexmark:flexmark-ext-gfm-strikethrough:0.62.2")
     implementation ("com.vladsch.flexmark:flexmark-ext-footnotes:0.62.2")
     implementation ("com.vladsch.flexmark:flexmark-ext-gfm-tasklist:0.62.2")
+    implementation("net.sourceforge.argparse4j:argparse4j:0.8.1")
 }
 
 // https://stackoverflow.com/questions/48553029/how-do-i-overwrite-a-task-in-gradle-kotlin-dsl
