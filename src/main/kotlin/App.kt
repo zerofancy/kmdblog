@@ -158,6 +158,7 @@ fun createNewBlog(filename: String) {
         date: ${Date()}
         tags: [tag1,tag2]
         ---
+        <!-- more -->
     """.trimIndent()
     FileUtils.fileWrite(newFile.canonicalPath, newFileContent)
 }
