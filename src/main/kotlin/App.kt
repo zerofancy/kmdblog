@@ -5,6 +5,7 @@ import net.sourceforge.argparse4j.inf.ArgumentParserException
 import org.apache.commons.io.FileUtils
 import org.dom4j.Document
 import org.dom4j.DocumentFactory
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.nio.file.Files
@@ -16,17 +17,22 @@ import java.time.format.DateTimeFormatter
 import java.util.*
 import kotlin.system.exitProcess
 
-val logger = LoggerFactory.getLogger(Unit::class.java)
+val logger: Logger = LoggerFactory.getLogger(Unit::class.java)
 
 fun main(args: Array<String>) {
     logger.trace("kmdblog启动。")
 
     val parser = ArgumentParsers.newFor("kmdblog").build()
     parser.defaultHelp(true)
-        .description("生成博客的静态网页")
+        .description("新博客")
         .addArgument("-n", "--new")
-        .nargs("?")
-        .help("创建一个新的博客。")
+        .help("创建一篇新的博客。")
+    parser.defaultHelp(true)
+        .description("静态化")
+        .addArgument("-s","--static")
+        .nargs("*")
+        .setDefault("all")
+        .help("利用你编写的markdown文件生成html网页（不需要参数）。")
 
     val namespace = try {
         parser.parseArgs(args)
@@ -41,11 +47,24 @@ fun main(args: Array<String>) {
         e
     }
     if (createNew is String) {
-        logger.info("Create a new blog $createNew")
+        logger.info("Creating new blog $createNew")
         createNewBlog(createNew)
         return
     }
 
+    val static = try {
+        namespace.getList<String>("static")
+    } catch (e: NoSuchAlgorithmException) {
+        e
+    }
+    if (static is List<*>) {
+        logger.debug("重新生成静态网页。")
+        generateStatic()
+        return
+    }
+}
+
+fun generateStatic() {
     HTMLTemplateUtil.initEngine(ConfigUtil.templatePath)
 
     val dependencyList = LinkedList<MakeDependency>()
@@ -54,9 +73,6 @@ fun main(args: Array<String>) {
 
     //遍历静态文件夹，添加依赖
     scanStaticFolder(File(ConfigUtil.staticPath), dependencyList, ConfigUtil.outputPath)
-    //res还需要复制到其他文件夹
-//    scanStaticFolder(File(ConfigUtil.staticPath + "/res"), dependencyList, ConfigUtil.inputPath)
-//    scanStaticFolder(File(ConfigUtil.staticPath + "/res"), dependencyList, ConfigUtil.templatePath)
 
     //生成文章内容页
     scanMdFolder(File(ConfigUtil.inputPath), dependencyList)
@@ -66,8 +82,8 @@ fun main(args: Array<String>) {
         val date = XMLUtil.readXMLDocument(it.canonicalPath)?.elementByID("editTime")?.textTrim
         LocalDate.parse(date, DateTimeFormatter.ofPattern("yyyy-MM-dd"))
     }
-    //每x个生成一个页面
 
+    //每x个生成一个页面
     var counter = 1;
     var splitItemNum = ConfigUtil.siteAttributes["indexSplitItemNum"]?.toInt() ?: 5
     if (splitItemNum < 1) {
@@ -131,10 +147,10 @@ fun main(args: Array<String>) {
 }
 
 fun createNewBlog(filename: String) {
-    val newFile=File(ConfigUtil.inputPath, filename)
-    if(newFile.exists()){
+    val newFile = File(ConfigUtil.inputPath, "$filename.md")
+    if (newFile.exists()) {
         logger.warn("文件${newFile}已经存在！")
-        exitProcess(1)
+        return
     }
     val newFileContent = """
         ---
@@ -215,7 +231,7 @@ fun updateMdXml(md: File, mdXml: File) {
     var edited = false
     if (mdXmlDocument == null) {
         edited = true
-        println("未找到${md}的配置文件")
+        logger.warn("未找到${md}的配置文件")
         mdXmlDocument = DocumentFactory.getInstance().createDocument()
         val attrElement = mdXmlDocument.addElement("article").addElement("attributes")
         XMLUtil.createElement(attrElement, "attr", hashMapOf("ID" to "title"), md.name.removeSuffix(".md"))
