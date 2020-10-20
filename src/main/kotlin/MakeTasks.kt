@@ -1,6 +1,7 @@
 package top.ntutn
 
 import org.apache.commons.io.FileUtils
+import org.slf4j.LoggerFactory
 import java.io.File
 import java.text.DateFormat
 import java.text.SimpleDateFormat
@@ -48,6 +49,8 @@ class NoOperationTask : MakeTask {
  * 复制任务，简单将第一个依赖文件复制为目标文件
  */
 class CopyTask : MakeTask {
+    private val logger by lazy { LoggerFactory.getLogger(this::class.java) }
+
     override fun invoke(source: List<File>, target: File, properties: Map<String, Any>) {
         if (source.isEmpty() || !checkReadable(source[0])) {
             return
@@ -75,6 +78,7 @@ fun createEmptyFile(file: File) {
  * 源文件传入第一个参数为md文件，第二个参数为xm，第三个参数为模板
  */
 class HtmlTask : MakeTask {
+    private val logger by lazy { LoggerFactory.getLogger(this::class.java) }
 
     override fun invoke(source: List<File>, target: File, properties: Map<String, Any>) {
         if (source.size < 3 || !checkReadable(source[0]) || !checkReadable(source[1]) || !checkReadable(source[2])) {
@@ -109,6 +113,8 @@ class HtmlTask : MakeTask {
  * 用所给输入文章内容页构建一个主页
  */
 class MainPageTask : MakeTask {
+    private val logger by lazy { LoggerFactory.getLogger(this::class.java) }
+
     /**
      * @param properties properties应该传递当前页码pageNum，页面总数pageCount，当前页面条目数量itemCount，单页面条目数量限制itemCountLimit
      */

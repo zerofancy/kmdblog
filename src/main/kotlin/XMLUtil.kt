@@ -13,36 +13,34 @@ import java.io.FileWriter
 /**
  * XML工具类
  */
-class XMLUtil {
-    companion object {
-        fun readXMLDocument(filePath: String): Document? {
-            try {
-                val reader = SAXReader()
-                val ins = FileInputStream(File(filePath))
-                return reader.read(ins)
-            } catch (e: Exception) {
-                return null
-            }
+object XMLUtil {
+    fun readXMLDocument(filePath: String): Document? {
+        try {
+            val reader = SAXReader()
+            val ins = FileInputStream(File(filePath))
+            return reader.read(ins)
+        } catch (e: Exception) {
+            return null
         }
+    }
 
-        fun writeXMLDocument(document: Document,file: File){
-            if(file.exists()){
-                file.delete()
-            }
-            val format: OutputFormat = OutputFormat.createPrettyPrint()
-            format.encoding = document.xmlEncoding
-            val xmlWriter= XMLWriter(FileWriter(file),format)
-            xmlWriter.write(document)
-            xmlWriter.close()
+    fun writeXMLDocument(document: Document, file: File) {
+        if (file.exists()) {
+            file.delete()
         }
+        val format: OutputFormat = OutputFormat.createPrettyPrint()
+        format.encoding = document.xmlEncoding
+        val xmlWriter = XMLWriter(FileWriter(file), format)
+        xmlWriter.write(document)
+        xmlWriter.close()
+    }
 
-        fun createElement(parent: Branch, name:String, attrs: HashMap<String,String>, text:String):Element{
-            val element= parent.addElement(name)
-            attrs.forEach {
-                element.addAttribute(it.key,it.value)
-            }
-            element.text=text
-            return element
+    fun createElement(parent: Branch, name: String, attrs: HashMap<String, String>, text: String): Element {
+        val element = parent.addElement(name)
+        attrs.forEach {
+            element.addAttribute(it.key, it.value)
         }
+        element.text = text
+        return element
     }
 }

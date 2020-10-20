@@ -17,7 +17,7 @@ import java.time.format.DateTimeFormatter
 import java.util.*
 import kotlin.system.exitProcess
 
-val logger: Logger = LoggerFactory.getLogger(Unit::class.java)
+private val logger by lazy { LoggerFactory.getLogger(Unit::class.java) }
 
 fun main(args: Array<String>) {
     logger.trace("kmdblog启动。")
@@ -29,7 +29,7 @@ fun main(args: Array<String>) {
         .help("创建一篇新的博客。")
     parser.defaultHelp(true)
         .description("静态化")
-        .addArgument("-s","--static")
+        .addArgument("-s", "--static")
         .nargs("*")
         .setDefault("all")
         .help("利用你编写的markdown文件生成html网页（不需要参数）。")
@@ -62,14 +62,13 @@ fun main(args: Array<String>) {
         generateStatic()
         return
     }
+    logger.error("没有输入任何内容。使用--help参数查看帮助。")
 }
 
 fun generateStatic() {
     HTMLTemplateUtil.initEngine(ConfigUtil.templatePath)
 
     val dependencyList = LinkedList<MakeDependency>()
-
-    //保证嵌套时源文件不被删除
 
     //遍历静态文件夹，添加依赖
     scanStaticFolder(File(ConfigUtil.staticPath), dependencyList, ConfigUtil.outputPath)
@@ -155,9 +154,12 @@ fun createNewBlog(filename: String) {
     val newFileContent = """
         ---
         title: $filename
-        date: ${Date()}
+        author: ${ConfigUtil.siteAttributes["defaultAuthor"]?:""}
+        publishDate: ${Date()}
+        editDate: ${Date()}
         tags: [tag1,tag2]
         ---
+        -
         <!-- more -->
     """.trimIndent()
     FileUtils.fileWrite(newFile.canonicalPath, newFileContent)
@@ -302,7 +304,7 @@ fun removeUnusedFiles(root: File, outputArray: List<MakeDependency>) {
                     }
                 }
                 if (!used) {
-                    println("删除无用文件$reality")
+                    logger.info("删除无用文件$reality")
                     reality.delete()
                 }
             }
@@ -314,7 +316,7 @@ fun removeEmptyFolders(file: File) {
     if (file.isDirectory) {
         file.listFiles()?.forEach { removeEmptyFolders(it) }
         if (file.listFiles()?.isEmpty() != false) {
-            println("删除空文件夹$file")
+            logger.info("删除空文件夹$file")
             file.delete()
         }
     }
