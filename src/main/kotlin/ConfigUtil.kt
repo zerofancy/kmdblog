@@ -84,7 +84,7 @@ object ConfigUtil {
         }
 
         //读取所有的站点配置
-        siteAttributes = HashMap<String, String>()
+        siteAttributes = HashMap()
 
         //读取不会被删除的文件配置
         noCleanFiles = emptyArray<File>()

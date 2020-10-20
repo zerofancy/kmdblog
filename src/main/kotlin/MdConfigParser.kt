@@ -1,9 +1,9 @@
 package top.ntutn
 
-import jdk.nashorn.internal.parser.DateParser
 import org.apache.commons.io.FileUtils
 import org.slf4j.LoggerFactory
 import java.io.File
+import java.lang.Exception
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -24,7 +24,7 @@ class MdConfigParser(val mdFile: File) {
     lateinit var publishDate: Date
     lateinit var editDate: Date
 
-    lateinit var attributes: Map<String, String>
+    private lateinit var attributes: Map<String, String>
 
     init {
         readConfig()
@@ -43,8 +43,16 @@ class MdConfigParser(val mdFile: File) {
             attributes = it
             title = it["title"] ?: ""
             author = it["author"] ?: ConfigUtil.siteAttributes["defaultAuthor"] ?: ""
-            publishDate = SimpleDateFormat("yyyy-MM-dd").parse(it["publishDate"])
-            editDate = SimpleDateFormat("yyyy-MM-dd").parse(it["editDate"])
+            publishDate = try {
+                dateFormat.parse(it["publishDate"])
+            } catch (e: Exception) {
+                Date()
+            }
+            editDate = try {
+                dateFormat.parse(it["editDate"])
+            } catch (e: Exception) {
+                Date()
+            }
             tags = it["tags"]?.removePrefix("[")?.removeSuffix("]")?.split(',')?.map { it.trim() } ?: listOf()
         }
         if (!this::attributes.isInitialized) {
@@ -62,7 +70,22 @@ class MdConfigParser(val mdFile: File) {
     }
 
     fun saveBack() {
-        TODO()
+        var content = FileUtils.fileRead(mdFile.canonicalPath)
+        var stringConfig = "---\n"
+        mapOf(
+            "title" to title,
+            "author" to author,
+            "publishDate" to dateFormat.format(publishDate),
+            "editDate" to dateFormat.format(editDate),
+            "tags" to tags
+        ).map {
+            it.component1() + ": " + it.component2() + "\n"
+        }.forEach { stringConfig += it }
+        stringConfig += "---\n-"
+
+        content = content.replace(regConfig, stringConfig)
+
+        FileUtils.fileWrite(mdFile.canonicalPath, content)
     }
 
     companion object {
@@ -76,5 +99,6 @@ class MdConfigParser(val mdFile: File) {
             ---([\s\S]*?)---\s*?-
         """.trimIndent()
         )
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd")
     }
 }
