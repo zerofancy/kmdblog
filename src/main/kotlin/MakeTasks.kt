@@ -75,7 +75,7 @@ fun createEmptyFile(file: File) {
 
 /**
  * 用所给md和模板渲染出一个内容网页
- * 源文件传入第一个参数为md文件，第二个参数为xm，第三个参数为模板
+ * 源文件传入第一个参数为md文件，第二个参数为模板
  */
 class HtmlTask : MakeTask {
     private val logger by lazy { LoggerFactory.getLogger(this::class.java) }
@@ -86,23 +86,9 @@ class HtmlTask : MakeTask {
             return
         }
         val mdFile = source[0]
-//        val xmlFile = source[1]
         val modelFile = source[1]
         val modelName = modelFile.nameWithoutExtension
         val parser = MdWithConfigParser(mdFile = mdFile, renderSummary = false, renderContent = true)
-
-//        val md = File(mdFile.canonicalPath).readText()
-//        val mdHtml = MdToHTMLUtil.render(md)
-//
-//        val attributes = mutableMapOf<String, Any>()
-//
-//        val document = XMLUtil.readXMLDocument(xmlFile.canonicalPath)
-//        document?.rootElement?.element("attributes")?.elements()?.forEach {
-//            attributes += it.attribute("ID").stringValue to it.textTrim
-//        }
-//        attributes += "md" to md
-//        attributes += "html" to mdHtml
-//        attributes += ConfigUtil.siteAttributes
 
         val outputHtml = HTMLTemplateUtil.render(modelName, parser.attributes)
         parser.editDate = Date()
@@ -133,16 +119,6 @@ class MainPageTask : MakeTask {
             if (it.name == MakeDependency.TARGET_ALWAYS_MAKE || it.name == MakeDependency.TARGET_NO_MAKE) {
                 return@forEach
             }
-//            val document = XMLUtil.readXMLDocument(it.canonicalPath)
-//            if (document != null) {
-//                val map = mutableMapOf<String,String>()
-//                document.rootElement.element("attributes").elements().forEach {
-//                    map += it.attribute("ID").stringValue to it.textTrim
-//                }
-//                map += "editTime2822" to convertTimeTo2822(map["editTime"] ?: "1970-01-01")
-//                map += "url" to getRelativeOutputFileOfMd(it)
-//                htmls += map
-//            }
             htmls += MdWithConfigParser(it, renderContent = false, renderSummary = true).attributes
         }
 
@@ -160,15 +136,5 @@ class MainPageTask : MakeTask {
         logger.info("使用$modelFile 渲染$target")
         createEmptyFile(target)
         target.writeText(outputHtml)
-    }
-
-    private fun getRelativeOutputFileOfMd(mdFile: File) =
-        mdFile.relativeTo(File(ConfigUtil.inputPath)).toString().removeSuffix(".md.xml") + ".html"
-
-    private fun convertTimeTo2822(time: String): String {
-        val fmt1: DateFormat = SimpleDateFormat("yyyy-MM-dd")
-        val fmt2 = SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss z", Locale.US)
-        val date = fmt1.parse(time)
-        return fmt2.format(date)
     }
 }

@@ -157,7 +157,7 @@ object ConfigUtil {
 
         val aboutMdPath = getAbsolutePath(inputPath, "./about.md")
         if (!File(aboutMdPath).exists()) {
-            logger.trace("网站关于模板不存在！")
+            logger.trace("网站关于文件不存在！")
             copyResourceTo("/input/about.md", aboutMdPath)
         }
 
