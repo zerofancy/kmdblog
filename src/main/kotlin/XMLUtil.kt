@@ -15,12 +15,12 @@ import java.io.FileWriter
  */
 object XMLUtil {
     fun readXMLDocument(filePath: String): Document? {
-        try {
+        return try {
             val reader = SAXReader()
             val ins = FileInputStream(File(filePath))
-            return reader.read(ins)
+            reader.read(ins)
         } catch (e: Exception) {
-            return null
+            null
         }
     }
 

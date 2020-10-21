@@ -1,13 +1,14 @@
 package top.ntutn
 
-import net.sourceforge.argparse4j.ArgumentParsers
-import net.sourceforge.argparse4j.inf.ArgumentParserException
-import org.apache.commons.io.FileUtils
+import BuildConfig
+import com.xenomachina.argparser.ArgParser
+import com.xenomachina.argparser.default
+import com.xenomachina.argparser.mainBody
 import org.dom4j.Document
 import org.dom4j.DocumentFactory
-import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.File
+import java.lang.Exception
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.security.NoSuchAlgorithmException
@@ -19,50 +20,32 @@ import kotlin.system.exitProcess
 
 private val logger by lazy { LoggerFactory.getLogger(Unit::class.java) }
 
+class MyArgs(parser: ArgParser) {
+    val newName by parser.storing("-n", "--new", help = "新建一篇文章")
+        .default<String?>(null)
+    val generate by parser.flagging("-g", "--generate", help = "生成静态网页")
+    val version by parser.flagging("-v", "--version", help = "查看当前版本")
+}
+
 fun main(args: Array<String>) {
     logger.trace("kmdblog启动。")
-
-    val parser = ArgumentParsers.newFor("kmdblog").build()
-    parser.defaultHelp(true)
-        .description("新博客")
-        .addArgument("-n", "--new")
-        .help("创建一篇新的博客。")
-    parser.defaultHelp(true)
-        .description("静态化")
-        .addArgument("-s", "--static")
-        .nargs("*")
-        .setDefault("all")
-        .help("利用你编写的markdown文件生成html网页（不需要参数）。")
-
-    val namespace = try {
-        parser.parseArgs(args)
-    } catch (e: ArgumentParserException) {
-        parser.handleError(e)
-        exitProcess(1)
+    mainBody {
+        ArgParser(args).parseInto(::MyArgs).run {
+            newName?.let {
+                createNewBlog(it)
+                return@mainBody
+            }
+            if (generate) {
+                generateStatic()
+                return@mainBody
+            }
+            if (version) {
+                logger.info(BuildConfig.versionName)
+                return@mainBody
+            }
+        }
+        logger.info("未匹配任何命令，使用--help参数查看帮助。")
     }
-
-    val createNew = try {
-        namespace.get<String>("new")
-    } catch (e: NoSuchAlgorithmException) {
-        e
-    }
-    if (createNew is String) {
-        logger.info("Creating new blog $createNew")
-        createNewBlog(createNew)
-        return
-    }
-
-    val static = try {
-        namespace.getList<String>("static")
-    } catch (e: NoSuchAlgorithmException) {
-        e
-    }
-    if (static is List<*>) {
-        logger.debug("重新生成静态网页。")
-        generateStatic()
-        return
-    }
-    logger.error("没有输入任何内容。使用--help参数查看帮助。")
 }
 
 fun generateStatic() {
@@ -74,13 +57,13 @@ fun generateStatic() {
     scanStaticFolder(File(ConfigUtil.staticPath), dependencyList, ConfigUtil.outputPath)
 
     //生成文章内容页
-    scanMdFolder(File(ConfigUtil.inputPath), dependencyList)
+    val mds = scanMdFolder(File(ConfigUtil.inputPath), dependencyList, arrayOf())
 
     //生成首页
-    val mdXmls = scanMdXmls(File(ConfigUtil.inputPath), emptyArray()).sortedByDescending {
-        val date = XMLUtil.readXMLDocument(it.canonicalPath)?.elementByID("editTime")?.textTrim
-        LocalDate.parse(date, DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-    }
+//    val mdXmls = scanMdXmls(File(ConfigUtil.inputPath), emptyArray()).sortedByDescending {
+//        val date = XMLUtil.readXMLDocument(it.canonicalPath)?.elementByID("editTime")?.textTrim
+//        LocalDate.parse(date, DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+//    }
 
     //每x个生成一个页面
     var counter = 1;
@@ -88,7 +71,7 @@ fun generateStatic() {
     if (splitItemNum < 1) {
         splitItemNum = 5
     }
-    val depList = MdToHTMLUtil.averageAssignFixLength(mdXmls.toList(), splitItemNum)
+    val depList = MdToHTMLUtil.averageAssignFixLength(mds.toList(), splitItemNum)
     depList.forEach {
         val tmpList = it.toMutableList()
         val firstPageName = "index.html"
@@ -145,29 +128,31 @@ fun generateStatic() {
     removeEmptyFolders(File(ConfigUtil.outputPath, "./res"))
 }
 
-fun createNewBlog(filename: String) {
+fun createNewBlog(filename: String, author: String? = null) {
+    val _author = author ?: ConfigUtil.siteAttributes["defaultAuthor"] ?: "归零幻想"
     val newFile = File(ConfigUtil.inputPath, "$filename.md")
     if (newFile.exists()) {
         logger.warn("文件${newFile}已经存在！")
         return
     }
-    val newFileContent = """
-        ---
-        title: $filename
-        author: ${ConfigUtil.siteAttributes["defaultAuthor"]?:""}
-        publishDate: ${Date()}
-        editDate: ${Date()}
-        tags: [tag1,tag2]
-        ---
-        -
-        <!-- more -->
-    """.trimIndent()
-    FileUtils.fileWrite(newFile.canonicalPath, newFileContent)
+    newFile.createNewFile()
+    MdWithConfigParser(
+        newFile,
+        renderSummary = false, renderContent = false
+    ).apply {
+        title = filename
+        this.author = _author
+        tags = listOf("tag1", "tag2")
+        publishDate = Date()
+        editDate = Date()
+        saveBack()
+    }
 }
 
 /**
  * 扫描输入文件夹，返回所有mdXml文件，以便生成主页
  */
+@Deprecated("不再使用mdXml")
 fun scanMdXmls(root: File, array: Array<File>): Array<File> {
     var res = array
     if (!root.exists() || !root.isDirectory || !root.canRead()) {
@@ -198,9 +183,10 @@ fun scanMdXmls(root: File, array: Array<File>): Array<File> {
  * @param root 起始位置
  * @param arrayDependency 已有依赖列表
  */
-fun scanMdFolder(root: File, arrayDependency: LinkedList<MakeDependency>) {
+fun scanMdFolder(root: File, arrayDependency: LinkedList<MakeDependency>, array: Array<File>): Array<File> {
+    var _array = array
     if (!root.exists() || !root.isDirectory || !root.canRead()) {
-        return
+        return _array
     }
     //跳过res文件夹
     if (File(ConfigUtil.inputPath + "/res").exists() && Files.isSameFile(
@@ -208,26 +194,37 @@ fun scanMdFolder(root: File, arrayDependency: LinkedList<MakeDependency>) {
             Paths.get(root.toURI())
         )
     ) {
-        return
+        return _array
     }
     root.listFiles()?.forEach {
         if (it.isDirectory) {
-            scanMdFolder(it, arrayDependency)
+            scanMdFolder(it, arrayDependency, _array)
             return@forEach
         }
         if (it.name.endsWith(".md")) {
-            val mdXml = File(it.parent, it.name + ".xml")
+            _array += it
+//            val mdXml = File(it.parent, it.name + ".xml")
             val model = File(ConfigUtil.templatePath, "article.html")
             val target = File(
                 ConfigUtil.outputPath,
                 it.relativeToOrSelf(File(ConfigUtil.inputPath)).toString().removeSuffix(".md") + ".html"
             )
-            updateMdXml(it, mdXml)
-            arrayDependency.add(MakeDependency(listOf(it, mdXml, model), target, MakeTasks.htmlTask))
+//            updateMdXml(it, mdXml)
+            arrayDependency.add(
+                MakeDependency(
+                    listOf(
+                        it
+//                , mdXml
+                        , model
+                    ), target, MakeTasks.htmlTask
+                )
+            )
         }
     }
+    return _array
 }
 
+@Deprecated("不再使用mdXml", ReplaceWith("MdWithConfigParser"))
 fun updateMdXml(md: File, mdXml: File) {
     var mdXmlDocument: Document? = XMLUtil.readXMLDocument(mdXml.toString())
     val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd")

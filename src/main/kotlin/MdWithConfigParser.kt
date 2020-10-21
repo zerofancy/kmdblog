@@ -9,64 +9,87 @@ import java.util.*
 
 /**
  * 直接读写md文件开头的配置
+ * 可对属性值直接赋值，但只有saveBack时它们才会被写入文件
+ * 只有refresh时它们才会出现在hashmap中
  */
-class MdConfigParser(val mdFile: File) {
+class MdWithConfigParser(val mdFile: File,renderSummary: Boolean = true, renderContent: Boolean = false) {
     private val logger by lazy { LoggerFactory.getLogger(this::class.java) }
+
+    private lateinit var _md: String
+    val md
+            get()= _md
+
+    private lateinit var _html: String
+    val html
+            get() = _html
 
     lateinit var title: String
     lateinit var author: String
     lateinit var tags: List<String>
+
     private lateinit var _summary: String
 
     // summary无法从这里编辑，只能编辑markdown源文件
     val summary
-        get() = _summary
+            get() = _summary
+
     lateinit var publishDate: Date
     lateinit var editDate: Date
 
-    private lateinit var attributes: Map<String, String>
+    private lateinit var _attributes: Map<String, String>
+    val attributes = _attributes
 
     init {
-        readConfig()
+        readConfig(renderSummary,renderContent)
     }
 
-    private fun readConfig() {
-        val content = FileUtils.fileRead(mdFile.canonicalPath)
+    private fun readConfig(renderSummary: Boolean = true, renderContent: Boolean = false) {
+        _md = FileUtils.fileRead(mdFile.canonicalPath)
 
-        val summaryMd = regSummary.find(content)?.groupValues?.getOrNull(1) ?: ""
-        _summary = MdToHTMLUtil.render(summaryMd)
+        val summaryMd = regSummary.find(_md)?.groupValues?.getOrNull(1) ?: ""
+        _summary = if (renderSummary) {
+            MdToHTMLUtil.render(summaryMd)
+        } else {
+            summaryMd
+        }
+        _html = if (renderContent) {
+            MdToHTMLUtil.render(_md)
+        } else {
+            md
+        }
 
-        regConfig.find(content)?.groupValues?.getOrNull(1)?.lines()?.map {
+        regConfig.find(_md)?.groupValues?.getOrNull(1)?.lines()?.map {
             val array = it.split(':')
             array.getOrElse(0) { "" }.trim() to array.getOrElse(1) { "" }.trim()
-        }?.toMap()?.let {
-            attributes = it
-            title = it["title"] ?: ""
-            author = it["author"] ?: ConfigUtil.siteAttributes["defaultAuthor"] ?: ""
+        }?.toMap()?.let { map ->
+            _attributes = map.plus("md" to _md).plus("summary" to _summary)
+            title = map["title"] ?: ""
+            author = map["author"] ?: ConfigUtil.siteAttributes["defaultAuthor"] ?: ""
             publishDate = try {
-                dateFormat.parse(it["publishDate"])
+                dateFormat.parse(map["publishDate"])
             } catch (e: Exception) {
                 Date()
             }
             editDate = try {
-                dateFormat.parse(it["editDate"])
+                dateFormat.parse(map["editDate"])
             } catch (e: Exception) {
                 Date()
             }
-            tags = it["tags"]?.removePrefix("[")?.removeSuffix("]")?.split(',')?.map { it.trim() } ?: listOf()
+            tags = map["tags"]?.removePrefix("[")?.removeSuffix("]")?.split(',')?.map { it.trim() } ?: listOf()
         }
-        if (!this::attributes.isInitialized) {
-            attributes = mapOf()
+        if (!this::_attributes.isInitialized) {
+            _attributes = mapOf()
             title = ""
             author = ConfigUtil.siteAttributes["defaultAuthor"] ?: ""
             publishDate = Date()
             editDate = Date()
             tags = listOf()
         }
+        _attributes = _attributes.plus("md" to _md).plus("html" to _html)
     }
 
-    fun refresh() {
-        readConfig()
+    fun refresh(renderSummary: Boolean = true, renderContent: Boolean = false) {
+        readConfig(renderSummary,renderContent)
     }
 
     fun saveBack() {
