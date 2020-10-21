@@ -92,7 +92,7 @@ class HtmlTask : MakeTask {
 
         val outputHtml = HTMLTemplateUtil.render(modelName, parser.attributes)
         parser.editDate = Date()
-        parser.saveBack()
+//        parser.saveBack()
         logger.info("渲染$mdFile->$target")
         createEmptyFile(target)
         target.writeText(outputHtml)
