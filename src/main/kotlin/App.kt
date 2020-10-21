@@ -59,12 +59,6 @@ fun generateStatic() {
     //生成文章内容页
     val mds = scanMdFolder(File(ConfigUtil.inputPath), dependencyList, arrayOf())
 
-    //生成首页
-//    val mdXmls = scanMdXmls(File(ConfigUtil.inputPath), emptyArray()).sortedByDescending {
-//        val date = XMLUtil.readXMLDocument(it.canonicalPath)?.elementByID("editTime")?.textTrim
-//        LocalDate.parse(date, DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-//    }
-
     //每x个生成一个页面
     var counter = 1;
     var splitItemNum = ConfigUtil.siteAttributes["indexSplitItemNum"]?.toInt() ?: 5
@@ -150,35 +144,6 @@ fun createNewBlog(filename: String, author: String? = null) {
 }
 
 /**
- * 扫描输入文件夹，返回所有mdXml文件，以便生成主页
- */
-@Deprecated("不再使用mdXml")
-fun scanMdXmls(root: File, array: Array<File>): Array<File> {
-    var res = array
-    if (!root.exists() || !root.isDirectory || !root.canRead()) {
-        return res
-    }
-    //跳过res文件夹
-    if (File(ConfigUtil.inputPath + "/res").exists() && Files.isSameFile(
-            Paths.get(ConfigUtil.inputPath + "/res"),
-            Paths.get(root.toURI())
-        )
-    ) {
-        return res
-    }
-    root.listFiles()?.forEach {
-        if (it.isDirectory) {
-            res += scanMdXmls(it, array)
-            return@forEach
-        }
-        if (it.name.endsWith(".md.xml")) {
-            res += it
-        }
-    }
-    return res
-}
-
-/**
  * 扫描输入文件夹，同步XML数据并开始渲染
  * @param root 起始位置
  * @param arrayDependency 已有依赖列表
@@ -203,18 +168,15 @@ fun scanMdFolder(root: File, arrayDependency: LinkedList<MakeDependency>, array:
         }
         if (it.name.endsWith(".md")) {
             _array += it
-//            val mdXml = File(it.parent, it.name + ".xml")
             val model = File(ConfigUtil.templatePath, "article.html")
             val target = File(
                 ConfigUtil.outputPath,
                 it.relativeToOrSelf(File(ConfigUtil.inputPath)).toString().removeSuffix(".md") + ".html"
             )
-//            updateMdXml(it, mdXml)
             arrayDependency.add(
                 MakeDependency(
                     listOf(
                         it
-//                , mdXml
                         , model
                     ), target, MakeTasks.htmlTask
                 )
@@ -222,39 +184,6 @@ fun scanMdFolder(root: File, arrayDependency: LinkedList<MakeDependency>, array:
         }
     }
     return _array
-}
-
-@Deprecated("不再使用mdXml", ReplaceWith("MdWithConfigParser"))
-fun updateMdXml(md: File, mdXml: File) {
-    var mdXmlDocument: Document? = XMLUtil.readXMLDocument(mdXml.toString())
-    val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd")
-    var edited = false
-    if (mdXmlDocument == null) {
-        edited = true
-        logger.warn("未找到${md}的配置文件")
-        mdXmlDocument = DocumentFactory.getInstance().createDocument()
-        val attrElement = mdXmlDocument.addElement("article").addElement("attributes")
-        XMLUtil.createElement(attrElement, "attr", hashMapOf("ID" to "title"), md.name.removeSuffix(".md"))
-        XMLUtil.createElement(attrElement, "attr", hashMapOf("ID" to "keywords"), "文章|关键词")
-        XMLUtil.createElement(attrElement, "attr", hashMapOf("ID" to "abs"), "文章的简介")
-        XMLUtil.createElement(attrElement, "attr", hashMapOf("ID" to "publishTime"), simpleDateFormat.format(Date()))
-        XMLUtil.createElement(attrElement, "attr", hashMapOf("ID" to "editTime"), simpleDateFormat.format(Date()))
-        XMLUtil.createElement(
-            attrElement,
-            "attr",
-            hashMapOf("ID" to "author"),
-            ConfigUtil.siteAttributes["defaultAuthor"] ?: "NO NAME"
-        )
-    }
-    mdXmlDocument!!
-    //更新修改日期
-    if (md.lastModified() > mdXml.lastModified()) {
-        edited = true
-        mdXmlDocument.elementByID("editTime").text = simpleDateFormat.format(md.lastModified())
-    }
-    if (edited) {
-        XMLUtil.writeXMLDocument(mdXmlDocument, mdXml)
-    }
 }
 
 fun scanStaticFolder(root: File, arrayDependency: LinkedList<MakeDependency>, targetPath: String) {

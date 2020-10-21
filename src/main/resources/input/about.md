@@ -1,3 +1,12 @@
+---
+title: 关于
+author: 归零幻想
+publishDate: 2020-10-22
+editDate: 2020-10-22
+tags: [关于, kmdblog]
+---
+-
+
 # 关于
 
 [TOC]
@@ -7,6 +16,8 @@
 ### kmdblog是什么
 
 本项目是一个自用的`Kotlin`练手项目，期望能根据`markdown`源文件自动生成一个可以直接部署的静态网站。
+
+<!--more-->
 
 ### kmdblog名字的含义
 
