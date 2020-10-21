@@ -1,5 +1,13 @@
 import com.squareup.kotlinpoet.*
-import java.io.FileWriter
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath("com.squareup:kotlinpoet:1.7.2")
+    }
+}
 
 plugins {
     kotlin("jvm") version "1.3.72"
@@ -13,19 +21,10 @@ repositories {
     mavenCentral()
 }
 
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-        classpath("com.squareup:kotlinpoet:1.7.2")
-    }
-}
-
-sourceSets{
-    main{
-        java{
-            srcDirs("build/classes/kotlin/generated")
+sourceSets {
+    main {
+        java {
+            srcDirs(File(project.rootDir, "src/main/generated"))
         }
     }
 }
@@ -73,7 +72,9 @@ val generateBuildConfigClass = task("generateBuildConfigClass", type = org.gradl
                 .build()
         )
         .build()
-    val file = File("./build/classes/kotlin/generated")
+    val file = File(project.rootDir, "src/main/generated").apply {
+        System.out.println("输出文件在$canonicalPath")
+    }
     content.writeTo(file)
 }
 
@@ -87,6 +88,6 @@ tasks {
     "build" {
         dependsOn(fatJar)
     }
+    generateBuildConfigClass
     fatJar
-
 }
