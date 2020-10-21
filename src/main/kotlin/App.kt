@@ -25,6 +25,7 @@ class MyArgs(parser: ArgParser) {
         .default<String?>(null)
     val generate by parser.flagging("-g", "--generate", help = "生成静态网页")
     val version by parser.flagging("-v", "--version", help = "查看当前版本")
+    val convert by parser.flagging("-c", "--convert", help = "将原来xml的文章配置转换为新版配置")
 }
 
 fun main(args: Array<String>) {
@@ -43,8 +44,53 @@ fun main(args: Array<String>) {
                 logger.info(BuildConfig.versionName)
                 return@mainBody
             }
+            if (convert) {
+                convert(File(ConfigUtil.inputPath))
+                return@mainBody
+            }
         }
         logger.info("未匹配任何命令，使用--help参数查看帮助。")
+    }
+}
+
+/**
+ * 将mdXml转换为新版配置
+ */
+fun convert(root: File) {
+    if (!root.exists() || !root.canRead()) {
+        return
+    }
+    //跳过res文件夹
+    if (File(ConfigUtil.inputPath + "/res").exists() && Files.isSameFile(
+            Paths.get(ConfigUtil.inputPath + "/res"),
+            Paths.get(root.toURI())
+        )
+    ) {
+        return
+    }
+    if (root.isDirectory) {
+        root.listFiles()?.forEach { convert(it) }
+        return
+    }
+    if (root.canonicalPath.endsWith(".md")) {
+        logger.info("正在转换$root")
+        val parser = MdWithConfigParser(root, renderSummary = false, renderContent = false)
+        val document = XMLUtil.readXMLDocument(root.canonicalPath + ".xml")
+        document?.let {
+            parser.apply {
+                title = it.elementByID("title").textTrim
+                tags = it.elementByID("keywords").textTrim.split('|')
+                author = it.elementByID("author").textTrim
+                publishDate = MdWithConfigParser.dateFormat.parse(it.elementByID("publishTime").textTrim)
+                editDate = MdWithConfigParser.dateFormat.parse(it.elementByID("editTime").textTrim)
+                saveBack()
+            }
+        }
+        File(root.canonicalPath + ".xml").let {
+            if (it.exists()) {
+                it.delete()
+            }
+        }
     }
 }
 
@@ -176,8 +222,7 @@ fun scanMdFolder(root: File, arrayDependency: LinkedList<MakeDependency>, array:
             arrayDependency.add(
                 MakeDependency(
                     listOf(
-                        it
-                        , model
+                        it, model
                     ), target, MakeTasks.htmlTask
                 )
             )

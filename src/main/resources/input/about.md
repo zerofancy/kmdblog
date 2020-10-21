@@ -34,6 +34,8 @@ tags: [关于, kmdblog]
 - [commons-io](https://commons.apache.org/proper/commons-io/)
 - [dom4j](https://dom4j.github.io/)
 - [flexmark-java](https://github.com/vsch/flexmark-java)
+- [kotlin-argparser](https://github.com/xenomachina/kotlin-argparser)
+- [kotlinpoet](https://square.github.io/kotlinpoet/)
 - [Slf4j](http://www.slf4j.org/)
 - [Thymeleaf](https://www.thymeleaf.org/)
 
@@ -44,3 +46,5 @@ tags: [关于, kmdblog]
 > - 删除线插件`StrikethroughExtension`
 > - 脚注插件`FootnoteExtension`
 > - 任务列表插件`TaskListExtension`
+
+文章参数的保存参考了 [Hexo](https://hexo.io/zh-cn/) 的设计。
