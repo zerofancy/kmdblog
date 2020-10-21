@@ -12,16 +12,16 @@ import java.util.*
  * 可对属性值直接赋值，但只有saveBack时它们才会被写入文件
  * 只有refresh时它们才会出现在hashmap中
  */
-class MdWithConfigParser(val mdFile: File,renderSummary: Boolean = true, renderContent: Boolean = false) {
+class MdWithConfigParser(val mdFile: File, renderSummary: Boolean = true, renderContent: Boolean = false) {
     private val logger by lazy { LoggerFactory.getLogger(this::class.java) }
 
     private lateinit var _md: String
     val md
-            get()= _md
+        get() = _md
 
     private lateinit var _html: String
     val html
-            get() = _html
+        get() = _html
 
     lateinit var title: String
     lateinit var author: String
@@ -31,16 +31,17 @@ class MdWithConfigParser(val mdFile: File,renderSummary: Boolean = true, renderC
 
     // summary无法从这里编辑，只能编辑markdown源文件
     val summary
-            get() = _summary
+        get() = _summary
 
     lateinit var publishDate: Date
     lateinit var editDate: Date
 
     private lateinit var _attributes: Map<String, String>
-    val attributes = _attributes
+    val attributes
+        get() = _attributes
 
     init {
-        readConfig(renderSummary,renderContent)
+        readConfig(renderSummary, renderContent)
     }
 
     private fun readConfig(renderSummary: Boolean = true, renderContent: Boolean = false) {
@@ -89,11 +90,14 @@ class MdWithConfigParser(val mdFile: File,renderSummary: Boolean = true, renderC
     }
 
     fun refresh(renderSummary: Boolean = true, renderContent: Boolean = false) {
-        readConfig(renderSummary,renderContent)
+        readConfig(renderSummary, renderContent)
     }
 
     fun saveBack() {
         var content = FileUtils.fileRead(mdFile.canonicalPath)
+        if (content.isBlank()) {
+            content = "<!--more-->"
+        }
         var stringConfig = "---\n"
         mapOf(
             "title" to title,
@@ -106,9 +110,11 @@ class MdWithConfigParser(val mdFile: File,renderSummary: Boolean = true, renderC
         }.forEach { stringConfig += it }
         stringConfig += "---\n-"
 
-        content = content.replace(regConfig, stringConfig)
+        var newContent = content.replace(regConfig, stringConfig)
+        // 若原来md文件没有配置信息，就把配置信息放到开头
+        newContent = if (newContent == content) "$stringConfig\n$content" else newContent
 
-        FileUtils.fileWrite(mdFile.canonicalPath, content)
+        FileUtils.fileWrite(mdFile.canonicalPath, newContent)
     }
 
     companion object {
