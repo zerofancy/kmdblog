@@ -6,7 +6,6 @@ import com.vladsch.flexmark.ext.toc.SimTocExtension
 import com.vladsch.flexmark.ext.toc.TocExtension
 import com.vladsch.flexmark.html.HtmlRenderer
 import com.vladsch.flexmark.parser.Parser
-import com.vladsch.flexmark.util.ast.Node
 import com.vladsch.flexmark.util.data.MutableDataSet
 import com.vladsch.flexmark.ext.gfm.strikethrough.StrikethroughExtension;
 import com.vladsch.flexmark.ext.gfm.tasklist.TaskListExtension
@@ -31,7 +30,7 @@ object MdToHTMLUtil {
 
     fun render(md: String): String {
         // 过滤掉md文件中的配置部分
-        val noConfigMd = MdConfigParser.regConfig.replace(md, "")
+        val noConfigMd = MdWithConfigParser.regConfig.replace(md, "")
         return renderer.render(parser.parse(noConfigMd))
     }
 

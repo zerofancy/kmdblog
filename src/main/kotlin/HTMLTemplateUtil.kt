@@ -28,7 +28,7 @@ object HTMLTemplateUtil {
      * @param template 模板名
      * @param params 参数
      */
-    fun render(template: String, params: HashMap<String, Any>): String {
+    fun render(template: String, params: Map<String, Any>): String {
         val context = Context()
         context.setVariables(params)
         return templateEngine.process(template, context)

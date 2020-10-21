@@ -81,28 +81,32 @@ class HtmlTask : MakeTask {
     private val logger by lazy { LoggerFactory.getLogger(this::class.java) }
 
     override fun invoke(source: List<File>, target: File, properties: Map<String, Any>) {
-        if (source.size < 3 || !checkReadable(source[0]) || !checkReadable(source[1]) || !checkReadable(source[2])) {
+        if (source.size < 2 || !checkReadable(source[0]) || !checkReadable(source[1])) {
+            logger.error("HTML渲染参数错误。")
             return
         }
         val mdFile = source[0]
-        val xmlFile = source[1]
-        val modelFile = source[2]
+//        val xmlFile = source[1]
+        val modelFile = source[1]
         val modelName = modelFile.nameWithoutExtension
+        val parser = MdWithConfigParser(mdFile = mdFile, renderSummary = false, renderContent = true)
 
-        val md = File(mdFile.canonicalPath).readText()
-        val mdHtml = MdToHTMLUtil.render(md)
+//        val md = File(mdFile.canonicalPath).readText()
+//        val mdHtml = MdToHTMLUtil.render(md)
+//
+//        val attributes = mutableMapOf<String, Any>()
+//
+//        val document = XMLUtil.readXMLDocument(xmlFile.canonicalPath)
+//        document?.rootElement?.element("attributes")?.elements()?.forEach {
+//            attributes += it.attribute("ID").stringValue to it.textTrim
+//        }
+//        attributes += "md" to md
+//        attributes += "html" to mdHtml
+//        attributes += ConfigUtil.siteAttributes
 
-        val attributes = hashMapOf<String, Any>()
-
-        val document = XMLUtil.readXMLDocument(xmlFile.canonicalPath)
-        document?.rootElement?.element("attributes")?.elements()?.forEach {
-            attributes += it.attribute("ID").stringValue to it.textTrim
-        }
-        attributes += "md" to md
-        attributes += "html" to mdHtml
-        attributes += ConfigUtil.siteAttributes
-
-        val outputHtml = HTMLTemplateUtil.render(modelName, attributes)
+        val outputHtml = HTMLTemplateUtil.render(modelName, parser.attributes)
+        parser.editDate = Date()
+        parser.saveBack()
         logger.info("渲染$mdFile->$target")
         createEmptyFile(target)
         target.writeText(outputHtml)
@@ -122,23 +126,24 @@ class MainPageTask : MakeTask {
         val modelFile = source.last {
             it.canonicalPath.contains(ConfigUtil.templatePath)
         }
-        val mdXmlList = source - modelFile
+        val mdList = source - modelFile
 
-        var htmls = emptyArray<MutableMap<String, String>>()
-        mdXmlList.forEach {
+        var htmls = emptyArray<Map<String, String>>()
+        mdList.forEach {
             if (it.name == MakeDependency.TARGET_ALWAYS_MAKE || it.name == MakeDependency.TARGET_NO_MAKE) {
                 return@forEach
             }
-            val document = XMLUtil.readXMLDocument(it.canonicalPath)
-            if (document != null) {
-                val map = emptyMap<String, String>().toMutableMap()
-                document.rootElement.element("attributes").elements().forEach {
-                    map += it.attribute("ID").stringValue to it.textTrim
-                }
-                map += "editTime2822" to convertTimeTo2822(map["editTime"] ?: "1970-01-01")
-                map += "url" to getRelativeOutputFileOfMd(it)
-                htmls += map
-            }
+//            val document = XMLUtil.readXMLDocument(it.canonicalPath)
+//            if (document != null) {
+//                val map = mutableMapOf<String,String>()
+//                document.rootElement.element("attributes").elements().forEach {
+//                    map += it.attribute("ID").stringValue to it.textTrim
+//                }
+//                map += "editTime2822" to convertTimeTo2822(map["editTime"] ?: "1970-01-01")
+//                map += "url" to getRelativeOutputFileOfMd(it)
+//                htmls += map
+//            }
+            htmls += MdWithConfigParser(it, renderContent = false, renderSummary = true).attributes
         }
 
         htmls.sortByDescending {
