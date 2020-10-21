@@ -4,19 +4,11 @@ import BuildConfig
 import com.xenomachina.argparser.ArgParser
 import com.xenomachina.argparser.default
 import com.xenomachina.argparser.mainBody
-import org.dom4j.Document
-import org.dom4j.DocumentFactory
 import org.slf4j.LoggerFactory
 import java.io.File
-import java.lang.Exception
 import java.nio.file.Files
 import java.nio.file.Paths
-import java.security.NoSuchAlgorithmException
-import java.text.SimpleDateFormat
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import java.util.*
-import kotlin.system.exitProcess
 
 private val logger by lazy { LoggerFactory.getLogger(Unit::class.java) }
 
