@@ -95,7 +95,15 @@ fun generateStatic() {
     scanStaticFolder(File(ConfigUtil.staticPath), dependencyList, ConfigUtil.outputPath)
 
     //生成文章内容页
-    val mds = scanMdFolder(File(ConfigUtil.inputPath), dependencyList, arrayOf())
+    val mds = scanMdFolder(File(ConfigUtil.inputPath), dependencyList)
+
+    mds.map {
+        it to MdWithConfigParser(it, renderContent = false, renderSummary = false).editDate
+    }.toMap().let { parsers ->
+        mds.sortByDescending {
+            parsers[it]
+        }
+    }
 
     //每x个生成一个页面
     var counter = 1;
@@ -186,8 +194,8 @@ fun createNewBlog(filename: String, author: String? = null) {
  * @param root 起始位置
  * @param arrayDependency 已有依赖列表
  */
-fun scanMdFolder(root: File, arrayDependency: LinkedList<MakeDependency>, array: Array<File>): Array<File> {
-    var _array = array
+fun scanMdFolder(root: File, arrayDependency: LinkedList<MakeDependency>): Array<File> {
+    var _array = arrayOf<File>()
     if (!root.exists() || !root.isDirectory || !root.canRead()) {
         return _array
     }
@@ -201,7 +209,7 @@ fun scanMdFolder(root: File, arrayDependency: LinkedList<MakeDependency>, array:
     }
     root.listFiles()?.forEach {
         if (it.isDirectory) {
-            scanMdFolder(it, arrayDependency, _array)
+            _array += scanMdFolder(it, arrayDependency)
             return@forEach
         }
         if (it.name.endsWith(".md")) {

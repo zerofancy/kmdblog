@@ -90,9 +90,8 @@ class HtmlTask : MakeTask {
         val modelName = modelFile.nameWithoutExtension
         val parser = MdWithConfigParser(mdFile = mdFile, renderSummary = false, renderContent = true)
 
-        val outputHtml = HTMLTemplateUtil.render(modelName, parser.attributes)
+        val outputHtml = HTMLTemplateUtil.render(modelName, parser.attributes.plus(ConfigUtil.siteAttributes))
         parser.editDate = Date()
-//        parser.saveBack()
         logger.info("渲染$mdFile->$target")
         createEmptyFile(target)
         target.writeText(outputHtml)
@@ -119,7 +118,13 @@ class MainPageTask : MakeTask {
             if (it.name == MakeDependency.TARGET_ALWAYS_MAKE || it.name == MakeDependency.TARGET_NO_MAKE) {
                 return@forEach
             }
-            htmls += MdWithConfigParser(it, renderContent = false, renderSummary = true).attributes
+            htmls += MdWithConfigParser(it, renderContent = false, renderSummary = true)
+                .attributes
+                .plus(
+                    "url" to
+                            it.toRelativeString(File(ConfigUtil.inputPath))
+                                .removeSuffix(".md").plus(".html")
+                )
         }
 
         htmls.sortByDescending {
@@ -128,7 +133,9 @@ class MainPageTask : MakeTask {
 
         val attributes = hashMapOf<String, Any>()
 
-        attributes += "htmls" to htmls
+        attributes += "htmls" to htmls.map {
+            it.plus("editTime2822" to convertTimeTo2822(it["editTime"] ?:"1970-01-01"))
+        }
         attributes += ConfigUtil.siteAttributes
         attributes += properties
 
@@ -136,5 +143,12 @@ class MainPageTask : MakeTask {
         logger.info("使用$modelFile 渲染$target")
         createEmptyFile(target)
         target.writeText(outputHtml)
+    }
+
+    private fun convertTimeTo2822(time:String):String{
+        val fmt1: DateFormat = SimpleDateFormat("yyyy-MM-dd")
+        val fmt2 = SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss z", Locale.US)
+        val date=fmt1.parse(time)
+        return fmt2.format(date)
     }
 }

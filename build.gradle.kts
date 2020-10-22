@@ -14,7 +14,7 @@ plugins {
 }
 
 group = "top.ntutn"
-version = "2.0"
+version = "2.2"
 //version = "1.0-SNAPSHOT"
 
 repositories {
@@ -32,7 +32,7 @@ sourceSets {
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
     implementation("org.dom4j:dom4j:2.1.3")
-    implementation("commons-io:commons-io:20030203.000550")
+    implementation("commons-io:commons-io:2.8.0")
     implementation("org.thymeleaf:thymeleaf:3.0.11.RELEASE")
     implementation("org.slf4j:slf4j-api:1.7.30")
     implementation("org.apache.logging.log4j:log4j-slf4j-impl:2.13.3")

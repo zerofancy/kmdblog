@@ -45,7 +45,7 @@ class MdWithConfigParser(val mdFile: File, renderSummary: Boolean = true, render
     }
 
     private fun readConfig(renderSummary: Boolean = true, renderContent: Boolean = false) {
-        _md = FileUtils.fileRead(mdFile.canonicalPath)
+        _md=FileUtils.readFileToString(mdFile, mdCharset)
 
         val summaryMd = regSummary.find(_md)?.groupValues?.getOrNull(1) ?: ""
         _summary = if (renderSummary) {
@@ -86,7 +86,7 @@ class MdWithConfigParser(val mdFile: File, renderSummary: Boolean = true, render
             editDate = Date()
             tags = listOf()
         }
-        _attributes = _attributes.plus("md" to _md).plus("html" to _html)
+        _attributes = _attributes.plus("md" to _md).plus("html" to _html).plus("summary" to _summary)
     }
 
     fun refresh(renderSummary: Boolean = true, renderContent: Boolean = false) {
@@ -94,7 +94,7 @@ class MdWithConfigParser(val mdFile: File, renderSummary: Boolean = true, render
     }
 
     fun saveBack() {
-        var content = FileUtils.fileRead(mdFile.canonicalPath)
+        var content = FileUtils.readFileToString(mdFile, mdCharset)
         if (content.isBlank()) {
             content = "<!--more-->"
         }
@@ -114,7 +114,7 @@ class MdWithConfigParser(val mdFile: File, renderSummary: Boolean = true, render
         // 若原来md文件没有配置信息，就把配置信息放到开头
         newContent = if (newContent == content) "$stringConfig\n$content" else newContent
 
-        FileUtils.fileWrite(mdFile.canonicalPath, newContent)
+        FileUtils.writeStringToFile(mdFile,newContent, mdCharset)
     }
 
     companion object {
@@ -129,5 +129,6 @@ class MdWithConfigParser(val mdFile: File, renderSummary: Boolean = true, render
         """.trimIndent()
         )
         val dateFormat = SimpleDateFormat("yyyy-MM-dd")
+        val mdCharset= charset("UTF-8")
     }
 }
