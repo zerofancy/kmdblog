@@ -28,7 +28,7 @@ object XMLUtil {
         if (file.exists()) {
             file.delete()
         }
-        val format: OutputFormat = OutputFormat.createPrettyPrint()
+        val format: OutputFormat = OutputFormat.createCompactFormat()
         format.encoding = document.xmlEncoding
         val xmlWriter = XMLWriter(FileWriter(file), format)
         xmlWriter.write(document)
