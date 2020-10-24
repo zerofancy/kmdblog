@@ -72,6 +72,16 @@ class MdWithConfigParser(val mdFile: File, renderSummary: Boolean = true, render
             }
             configString = "$configString\n$line"
         }
+        /**
+         * 没有summary和config分界，则认为全文都是summary
+         * 仅没有summary分界符，则认为全文都是config和summary
+         */
+        if(!isSummaryAppeared&&!isConfigAppeared){
+            summaryString=configString
+            configString=""
+            contentWithoutSummaryString=""
+            return
+        }
     }
 
     private fun readConfig(renderSummary: Boolean = true, renderContent: Boolean = false) {
