@@ -15,6 +15,10 @@ import java.util.*
 class MdWithConfigParser(val mdFile: File, renderSummary: Boolean = true, renderContent: Boolean = false) {
     private val logger by lazy { LoggerFactory.getLogger(this::class.java) }
 
+    private lateinit var configString: String
+    private lateinit var summaryString: String
+    private lateinit var contentWithoutSummaryString: String
+
     private lateinit var _md: String
     val md
         get() = _md
@@ -44,14 +48,40 @@ class MdWithConfigParser(val mdFile: File, renderSummary: Boolean = true, render
         readConfig(renderSummary, renderContent)
     }
 
-    private fun readConfig(renderSummary: Boolean = true, renderContent: Boolean = false) {
-        _md=FileUtils.readFileToString(mdFile, mdCharset)
+    private fun splitArticle(source: String) {
+        configString = ""
+        summaryString = ""
+        contentWithoutSummaryString = ""
+        var isConfigAppeared = false
+        var isSummaryAppeared = false
+        for (line in source.lines()) {
+            if (isSummaryAppeared) {
+                contentWithoutSummaryString = "$contentWithoutSummaryString\n$line"
+                continue
+            }
+            if (isConfigAppeared) {
+                if (line.trim() == summarySpliterator) {
+                    isSummaryAppeared = true
+                    continue
+                }
+                summaryString = "$summaryString\n$line"
+            }
+            if (line.trim() == configSpliterator) {
+                isConfigAppeared = true
+                continue
+            }
+            configString = "$configString\n$line"
+        }
+    }
 
-        val summaryMd = regSummary.find(_md)?.groupValues?.getOrNull(1) ?: ""
+    private fun readConfig(renderSummary: Boolean = true, renderContent: Boolean = false) {
+        _md = FileUtils.readFileToString(mdFile, mdCharset)
+        splitArticle(_md)
+
         _summary = if (renderSummary) {
-            MdToHTMLUtil.render(summaryMd)
+            MdToHTMLUtil.render(summaryString)
         } else {
-            summaryMd
+            summaryString
         }
         _html = if (renderContent) {
             MdToHTMLUtil.render(_md)
@@ -59,10 +89,10 @@ class MdWithConfigParser(val mdFile: File, renderSummary: Boolean = true, render
             md
         }
 
-        regConfig.find(_md)?.groupValues?.getOrNull(1)?.lines()?.map {
+        configString.lines().map {
             val array = it.split(':')
             array.getOrElse(0) { "" }.trim() to array.getOrElse(1) { "" }.trim()
-        }?.toMap()?.let { map ->
+        }.toMap().let { map ->
             _attributes = map.plus("md" to _md).plus("summary" to _summary)
             title = map["title"] ?: ""
             author = map["author"] ?: ConfigUtil.siteAttributes["defaultAuthor"] ?: ""
@@ -78,14 +108,6 @@ class MdWithConfigParser(val mdFile: File, renderSummary: Boolean = true, render
             }
             tags = map["tags"]?.removePrefix("[")?.removeSuffix("]")?.split(',')?.map { it.trim() } ?: listOf()
         }
-        if (!this::_attributes.isInitialized) {
-            _attributes = mapOf()
-            title = ""
-            author = ConfigUtil.siteAttributes["defaultAuthor"] ?: ""
-            publishDate = Date()
-            editDate = Date()
-            tags = listOf()
-        }
         _attributes = _attributes.plus("md" to _md).plus("html" to _html).plus("summary" to _summary)
     }
 
@@ -94,11 +116,7 @@ class MdWithConfigParser(val mdFile: File, renderSummary: Boolean = true, render
     }
 
     fun saveBack() {
-        var content = FileUtils.readFileToString(mdFile, mdCharset)
-        if (content.isBlank()) {
-            content = "<!--more-->"
-        }
-        var stringConfig = "---\n"
+        var stringConfig = ""
         mapOf(
             "title" to title,
             "author" to author,
@@ -108,27 +126,25 @@ class MdWithConfigParser(val mdFile: File, renderSummary: Boolean = true, render
         ).map {
             it.component1() + ": " + it.component2() + "\n"
         }.forEach { stringConfig += it }
-        stringConfig += "---\n-"
 
-        var newContent = content.replace(regConfig, stringConfig)
-        // 若原来md文件没有配置信息，就把配置信息放到开头
-        newContent = if (newContent == content) "$stringConfig\n$content" else newContent
-
-        FileUtils.writeStringToFile(mdFile,newContent, mdCharset)
+        FileUtils.writeStringToFile(
+            mdFile,
+            "$stringConfig\n$configSpliterator\n$summaryString\n$summarySpliterator\n$contentWithoutSummaryString",
+            mdCharset
+        )
     }
 
     companion object {
-        val regSummary = Regex(
-            """
-            ([\s\S]*?)<!--.*?more.*?-->
-        """.trimIndent()
-        )
-        val regConfig = Regex(
-            """
-            ---([\s\S]*?)---\s*?-
-        """.trimIndent()
-        )
+        /**
+         * 配置区域与summary区域的分隔符
+         */
+        const val configSpliterator = "<!--config-->"
+
+        /**
+         * summary区域与剩余正文的分隔符
+         */
+        const val summarySpliterator = "<!--summary-->"
         val dateFormat = SimpleDateFormat("yyyy-MM-dd")
-        val mdCharset= charset("UTF-8")
+        val mdCharset = charset("UTF-8")
     }
 }

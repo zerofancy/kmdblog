@@ -14,7 +14,7 @@ plugins {
 }
 
 group = "top.ntutn"
-version = "2.2"
+version = "2.3"
 //version = "1.0-SNAPSHOT"
 
 repositories {
