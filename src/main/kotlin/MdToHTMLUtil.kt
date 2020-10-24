@@ -29,9 +29,7 @@ object MdToHTMLUtil {
     private val renderer = HtmlRenderer.builder(options).build()
 
     fun render(md: String): String {
-        // 过滤掉md文件中的配置部分
-        val noConfigMd = MdWithConfigParser.regConfig.replace(md, "")
-        return renderer.render(parser.parse(noConfigMd))
+        return renderer.render(parser.parse(md))
     }
 
     /**
