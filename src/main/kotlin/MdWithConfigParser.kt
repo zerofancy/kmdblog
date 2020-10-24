@@ -94,7 +94,7 @@ class MdWithConfigParser(val mdFile: File, renderSummary: Boolean = true, render
             summaryString
         }
         _html = if (renderContent) {
-            MdToHTMLUtil.render(_md)
+            MdToHTMLUtil.render("$summaryString\n$contentWithoutSummaryString")
         } else {
             md
         }
