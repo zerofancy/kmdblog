@@ -49,33 +49,37 @@ dependencies {
 // https://stackoverflow.com/questions/48553029/how-do-i-overwrite-a-task-in-gradle-kotlin-dsl
 // https://github.com/gradle/kotlin-dsl/issues/705
 // https://github.com/gradle/kotlin-dsl/issues/716
-val fatJar = task("fatJar", type = org.gradle.jvm.tasks.Jar::class) {
-    System.out.println("fatJar打包")
-    archiveFileName.set("${project.name}-fat.jar")
-    manifest {
-        attributes["Main-Class"] = "top.ntutn.AppKt"
+task("fatJar", type = org.gradle.jvm.tasks.Jar::class) {
+    doLast {
+        println("fatJar打包")
+        archiveFileName.set("${project.name}-fat.jar")
+        manifest {
+            attributes["Main-Class"] = "top.ntutn.AppKt"
+        }
+        from(configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) })
     }
-    from(configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) })
     with(tasks["jar"] as CopySpec).exclude("META-INF/LICENSE.txt").exclude("META-INF/NOTICE.txt")
 }
 
-val generateBuildConfigClass = task("generateBuildConfigClass", type = org.gradle.jvm.tasks.Jar::class) {
-    System.out.println("生成BuildConfig.kt")
-    val content = FileSpec.builder("", "BuildConfig")
-        .addType(
-            TypeSpec.objectBuilder("BuildConfig")
-                .addProperty(
-                    PropertySpec.builder("versionName", String::class)
-                        .initializer("%S", archiveVersion.get())
-                        .build()
-                )
-                .build()
-        )
-        .build()
-    val file = File(project.rootDir, "src/main/generated").apply {
-        System.out.println("输出文件在$canonicalPath")
+task("generateBuildConfigClass", type = org.gradle.jvm.tasks.Jar::class) {
+    doLast {
+        println("生成BuildConfig.kt")
+        val content = FileSpec.builder("", "BuildConfig")
+            .addType(
+                TypeSpec.objectBuilder("BuildConfig")
+                    .addProperty(
+                        PropertySpec.builder("versionName", String::class)
+                            .initializer("%S", archiveVersion.get())
+                            .build()
+                    )
+                    .build()
+            )
+            .build()
+        val file = File(project.rootDir, "src/main/generated").apply {
+            println("输出文件在$canonicalPath")
+        }
+        content.writeTo(file)
     }
-    content.writeTo(file)
 }
 
 tasks {
@@ -85,9 +89,10 @@ tasks {
     compileTestKotlin {
         kotlinOptions.jvmTarget = "1.8"
     }
-    "build" {
-        dependsOn(fatJar)
+    "compileKotlin" {
+        dependsOn("generateBuildConfigClass")
     }
-    generateBuildConfigClass
-    fatJar
+    "build" {
+        dependsOn("fatJar")
+    }
 }
