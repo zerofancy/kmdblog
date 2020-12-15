@@ -14,7 +14,7 @@ plugins {
 }
 
 group = "top.ntutn"
-version = "2.3.4"
+version = "2.3.5"
 //version = "1.0-SNAPSHOT"
 
 repositories {
@@ -52,12 +52,12 @@ dependencies {
 task("fatJar", type = org.gradle.jvm.tasks.Jar::class) {
     doLast {
         println("fatJar打包")
-        archiveFileName.set("${project.name}-fat.jar")
-        manifest {
-            attributes["Main-Class"] = "top.ntutn.AppKt"
-        }
-        from(configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) })
     }
+    archiveFileName.set("${project.name}-fat.jar")
+    manifest {
+        attributes["Main-Class"] = "top.ntutn.AppKt"
+    }
+    from(configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) })
     with(tasks["jar"] as CopySpec).exclude("META-INF/LICENSE.txt").exclude("META-INF/NOTICE.txt")
 }
 

@@ -134,7 +134,7 @@ class MainPageTask : MakeTask {
         val attributes = hashMapOf<String, Any>()
 
         attributes += "htmls" to htmls.map {
-            it.plus("editTime2822" to convertTimeTo2822(it["editTime"] ?:"1970-01-01"))
+            it.plus("editTime2822" to convertTimeTo2822(it["editDate"] ?:"1970-01-01"))
         }
         attributes += ConfigUtil.siteAttributes
         attributes += properties
